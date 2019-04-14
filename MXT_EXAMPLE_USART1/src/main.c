@@ -123,11 +123,19 @@ struct botao {
 };	
 
 void lavagem_callback(void){
-	
+/*	printf("Molhando a maquina\n\r");*/
+	printf("\n\rMolhando a maquina\n\r\n\r");
+		printf("\n\rmaXTouch data USART transmitter\n\r");
+			printf("\n\rmaXTouch data USART transmitter\n\r");
+				printf("\n\rmaXTouch data USART transmitter\n\r");
+					printf("\n\rmaXTouch data USART transmitter\n\r");
+					
 }
 
 void secagem_callback(void){
-	
+	/*printf("Secando a maquina\n\r");*/
+	printf("\n\rSecando a maquina\n\r\n\r");
+		printf("\n\rmaXTouch data USART transmitter\n\r");	printf("\n\rmaXTouch data USART transmitter\n\r");	printf("\n\rmaXTouch data USART transmitter\n\r");
 }
 
 int processa_touch(struct botao b[], struct botao *rtn, uint N ,uint x, uint y ){
@@ -260,16 +268,16 @@ void draw_button(uint32_t clicked) {
 	last_state = clicked;
 }
 
-uint32_t convert_axis_system_x(uint32_t touch_y) {
+uint32_t convert_axis_system_x(uint32_t touch_x) {
 	// entrada: 4096 - 0 (sistema de coordenadas atual)
 	// saida: 0 - 320
-	return ILI9488_LCD_WIDTH - ILI9488_LCD_WIDTH*touch_y/4096;
+	return ILI9488_LCD_WIDTH - ILI9488_LCD_WIDTH*touch_x/4096;
 }
 
-uint32_t convert_axis_system_y(uint32_t touch_x) {
+uint32_t convert_axis_system_y(uint32_t touch_y) {
 	// entrada: 0 - 4096 (sistema de coordenadas atual)
 	// saida: 0 - 320
-	return ILI9488_LCD_HEIGHT*touch_x/4096;
+	return ILI9488_LCD_HEIGHT - (ILI9488_LCD_HEIGHT*touch_y/4096);
 }
 
 void update_screen(uint32_t tx, uint32_t ty) {
@@ -303,8 +311,8 @@ void mxt_handler(struct mxt_device *device, struct botao botoes[], uint Nbotoes)
 		}
 		
 		 // eixos trocados (quando na vertical LCD)
-		uint32_t conv_x = convert_axis_system_x(touch_event.y);
-		uint32_t conv_y = convert_axis_system_y(touch_event.x);
+		uint32_t conv_x = convert_axis_system_x(touch_event.x);
+		uint32_t conv_y = convert_axis_system_y(touch_event.y);
 		
 		/* Format a new entry in the data string that will be sent over USART */
 		sprintf(buf, "X:%3d Y:%3d \n", conv_x, conv_y);
@@ -365,8 +373,8 @@ int main(void)
 	botaoLavagem.image = &icone1;
 
 	struct botao botaoSecagem;
-	botaoSecagem.x = 150;
-	botaoSecagem.y = 60;
+	botaoSecagem.x = 200;
+	botaoSecagem.y = 0;
 	botaoSecagem.size = 100;
 	botaoSecagem.p_handler = secagem_callback;
 	botaoSecagem.image = &icone1;
