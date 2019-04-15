@@ -35,7 +35,7 @@ struct botao {
 #include "icones/maquina.h"
 
 struct botao botaoRight = {
-    .x = 400,
+    .x = 415,
     .y = 240,
     .size_x = 64,
     .size_y = 64,
