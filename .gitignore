@@ -29,3 +29,5 @@
 # End of https://www.gitignore.io/api/atmelstudio
 
 .DS_Store
+
+._*

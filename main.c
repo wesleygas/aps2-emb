@@ -2,16 +2,16 @@
  * Computação Embarcada
  * APS 2 
  * Rafael . Corsi @ insper . edu . br
- */ 
-#include <stdio.h>
+ */
 #include "maquina1.h"
+#include <stdio.h>
 
 /**
  * Inicializa ordem do menu
  * retorna o primeiro ciclo que
  * deve ser exibido.
  */
-t_ciclo *initMenuOrder(){
+t_ciclo *initMenuOrder() {
   c_rapido.previous = &c_enxague;
   c_rapido.next = &c_diario;
 
@@ -27,10 +27,10 @@ t_ciclo *initMenuOrder(){
   c_centrifuga.previous = &c_enxague;
   c_centrifuga.next = &c_rapido;
 
-  return(&c_diario);
+  return (&c_diario);
 }
 
-void main(void){
+void main(void) {
   t_ciclo *p_primeiro = initMenuOrder();
   printf("%s", p_primeiro->next->next->nome);
 }
