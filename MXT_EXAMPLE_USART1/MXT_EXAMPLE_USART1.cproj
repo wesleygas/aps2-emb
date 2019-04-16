@@ -677,6 +677,7 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Include\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
+    <Folder Include="src\ciclos\" />
     <Folder Include="src\config\" />
     <Folder Include="src\icones\" />
   </ItemGroup>
@@ -1338,6 +1339,12 @@
     <None Include="src\config\conf_ili9488.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="src\ciclos\ciclo.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ciclos\cycles.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\func.h">
       <SubType>compile</SubType>
     </Compile>

@@ -80,9 +80,7 @@
  * For further information, visit
  * <A href="http://www.atmel.com/">Atmel</A>.\n
  */
-/*
- * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
- */
+
 #include <asf.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,6 +91,8 @@
 #include "conf_uart_serial.h"
 #include "func.h"
 
+#include "ciclo.h"
+
 #define pino_pio PIOA
 
 #define MAX_ENTRIES 3
@@ -100,7 +100,7 @@
 
 #define USART_TX_MAX_LENGTH 0xff
 
-volatile int num_bot = 1;
+volatile int num_bot = 0;
 /** \brief Touch event struct */
 
 /*
@@ -110,22 +110,44 @@ Botoes do display
 
 */
 
+void initMenuOrder() {
+  c_rapido.previous = &c_enxague;
+  c_rapido.next = &c_diario;
+
+  c_diario.previous = &c_rapido;
+  c_diario.next = &c_pesado;
+
+  c_pesado.previous = &c_diario;
+  c_pesado.next = &c_enxague;
+
+  c_enxague.previous = &c_pesado;
+  c_enxague.next = &c_centrifuga;
+
+  c_centrifuga.previous = &c_enxague;
+  c_centrifuga.next = &c_rapido;
+}
+
 void lavagem_callback(void) {
   /*	printf("Molhando a maquina\n\r");*/
-  printf("Molhando a maquina\n\r");
+  //printf("Molhando a maquina\n\r");
 }
 
 void secagem_callback(void) {
-  /*printf("Secando a maquina\n\r");*/
-  printf("Secando a maquina\n\r");
+  //printf("Secando a maquina\n\r");
 }
 
 void next_callback(void) {
-  printf("Nextando a maquina\n\r");
-  printf("Nextando a maquina\n\r");
-  printf("Nextando a maquina\n\r");
-  printf("Nextando a maquina\n\r");
+  actual_cycle = actual_cycle->next;
+
+  draw_now = true;
 }
+
+void back_callback(void) {
+  actual_cycle = actual_cycle->previous;
+
+  draw_now = true;
+}
+
 void draw_button(struct botao b[], uint N) {
   for (int i = 0; i < N; i++) {
     ili9488_draw_pixmap(b[i].x,
@@ -135,11 +157,36 @@ void draw_button(struct botao b[], uint N) {
                         b[i].image->data);
   }
 }
+
+void draw_menu(t_ciclo *c) {
+
+  ili9488_draw_pixmap(20,
+                      20,
+                      (c->image)->width,
+                      (c->image)->height,
+                      (c->image)->data);
+
+  ili9488_draw_string(10,
+                      40,
+                      c->nome);
+}
+
+void draw(void) {
+
+  if (draw_now) {
+    draw_menu(actual_cycle);
+    printf(actual_cycle->nome);
+    printf("\n");
+
+    draw_now = false;
+  }
+}
+
 int processa_touch(struct botao b[], struct botao *rtn, uint N, uint x, uint y) {
   for (int i = 0; i < N; i++) {
     if ((x >= b[i].x) && (x <= (b[i].x + b[i].size_x)) && (y >= b[i].y) && (y <= (b[i].y + b[i].size_y))) {
 
-      printf("Encontrou botao %d \n\r", i);
+      //("Encontrou botao %d \n\r", i);
       *rtn = b[i];
       return true;
     }
@@ -279,7 +326,8 @@ void mxt_handler(struct mxt_device *device, struct botao botoes[], uint Nbotoes)
 
     /* -----------------------------------------------------*/
     struct botao bAtual;
-    if (processa_touch(botoes, &bAtual, Nbotoes, conv_x, conv_y)) {
+    //contribuicao de status
+    if (processa_touch(botoes, &bAtual, Nbotoes, conv_x, conv_y) && touch_event.status < 60) {
       bAtual.p_handler();
     }
     //update_screen(conv_x, conv_y);
@@ -295,7 +343,7 @@ void mxt_handler(struct mxt_device *device, struct botao botoes[], uint Nbotoes)
 
   /* If there is any entries in the buffer, send them over USART */
   if (i > 0) {
-    usart_serial_write_packet(USART_SERIAL_EXAMPLE, (uint8_t *)tx_buf, strlen(tx_buf));
+    //usart_serial_write_packet(USART_SERIAL_EXAMPLE, (uint8_t *)tx_buf, strlen(tx_buf));
   }
 }
 
@@ -313,6 +361,7 @@ int main(void) {
   board_init();  /* Initialize board */
   configure_lcd();
   draw_screen();
+  initMenuOrder();
 
   /* Initialize the mXT touch device */
   mxt_init(&device);
@@ -322,26 +371,22 @@ int main(void) {
 
   printf("\n\rmaXTouch data USART transmitter\n\r");
 
-
-
-
   //pino led = {.id = 4, .id_pio = ID_PIOA, .mask = 1 << 4, .pio = PIOA};
 
   ili9488_draw_filled_rectangle(0, 0, ILI9488_LCD_WIDTH, ILI9488_LCD_HEIGHT);
-  
+
   num_bot = 3;
   struct botao botoes[] = {botaoPlay, botaoRight, botaoLeft};
   draw_button(botoes, num_bot);
 
-
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
-//   ili9488_draw_string(botaoRight.x + botaoRight.image->width + 10,
-//                       botaoRight.y + botaoRight.image->height / 2,
-//                       "Local");
+  //   ili9488_draw_string(botaoRight.x + botaoRight.image->width + 10,
+  //                       botaoRight.y + botaoRight.image->height / 2,
+  //                       "Local");
 
   /* -----------------------------------------------------*/
-
   while (true) {
+    draw();
     /* Check for any pending messages and run message handler if any
 		 * message is found in the queue */
     if (mxt_is_message_pending(&device)) {

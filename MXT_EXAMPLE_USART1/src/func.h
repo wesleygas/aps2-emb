@@ -48,7 +48,7 @@ struct botao botaoLeft = {
     .size_x = 64,
     .size_y = 64,
     .image = &left,
-    .p_handler = next_callback};
+    .p_handler = back_callback};
 
 struct botao botaoPlay = {
     .x = 200,
@@ -56,7 +56,7 @@ struct botao botaoPlay = {
     .size_x = 64,
     .size_y = 64,
     .image = &play,
-    .p_handler = next_callback};
+    .p_handler = secagem_callback};
 
 struct botao botaoSecagem = {
     .x = 0,
@@ -67,4 +67,7 @@ struct botao botaoSecagem = {
     .p_handler = secagem_callback};
 
 void draw_button(struct botao b[], uint N);
+void draw(void);
+
 volatile int main_menu = true;
+volatile int draw_now = false;
