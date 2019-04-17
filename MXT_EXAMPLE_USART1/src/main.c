@@ -89,14 +89,16 @@
 #include "conf_board.h"
 #include "conf_example.h"
 #include "conf_uart_serial.h"
+
 #include "func.h"
 
 #include "ciclo.h"
 
-#define pino_pio PIOA
+// #define pino_pio PIOA
 
 #define MAX_ENTRIES 3
 #define STRING_LENGTH 70
+#define STRING_MENU_LENGTH 70
 
 #define USART_TX_MAX_LENGTH 0xff
 
@@ -159,16 +161,24 @@ void draw_button(struct botao b[], uint N) {
 }
 
 void draw_menu(t_ciclo *c) {
-
-  ili9488_draw_pixmap(20,
-                      20,
+  char buf[STRING_MENU_LENGTH];
+  ili9488_draw_pixmap(10,
+                      10,
                       (c->image)->width,
                       (c->image)->height,
                       (c->image)->data);
+  ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
+  ili9488_draw_filled_rectangle(10, 138, 138, 168);
 
+  ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
   ili9488_draw_string(10,
-                      40,
+                      138,
                       c->nome);
+
+ 
+  ili9488_draw_string(145,
+                      10,
+                      "Tempo enx. (min)");
 }
 
 void draw(void) {
@@ -341,10 +351,13 @@ void mxt_handler(struct mxt_device *device, struct botao botoes[], uint Nbotoes)
 		 * if we have reached the maximum numbers of events */
   } while ((mxt_is_message_pending(device)) & (i < MAX_ENTRIES));
 
-  /* If there is any entries in the buffer, send them over USART */
+/* If there is any entries in the buffer, send them over USART */
+#ifndef test
+
   if (i > 0) {
-    //usart_serial_write_packet(USART_SERIAL_EXAMPLE, (uint8_t *)tx_buf, strlen(tx_buf));
+    usart_serial_write_packet(USART_SERIAL_EXAMPLE, (uint8_t *)tx_buf, strlen(tx_buf));
   }
+#endif
 }
 
 int main(void) {

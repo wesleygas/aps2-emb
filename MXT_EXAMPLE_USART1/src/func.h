@@ -31,7 +31,6 @@ struct botao {
 };
 
 #include "icones/arrows.h"
-#include "icones/icone1.h"
 #include "icones/maquina.h"
 
 struct botao botaoRight = {
@@ -58,16 +57,16 @@ struct botao botaoPlay = {
     .image = &play,
     .p_handler = secagem_callback};
 
-struct botao botaoSecagem = {
-    .x = 0,
-    .y = 0,
-    .size_x = 100,
-    .size_y = 100,
-    .image = &icone1,
-    .p_handler = secagem_callback};
+// struct botao botaoSecagem = {
+//     .x = 0,
+//     .y = 0,
+//     .size_x = 100,
+//     .size_y = 100,
+//     .image = &icone1,
+//     .p_handler = secagem_callback};
 
 void draw_button(struct botao b[], uint N);
 void draw(void);
 
 volatile int main_menu = true;
-volatile int draw_now = false;
+volatile int draw_now = true;
