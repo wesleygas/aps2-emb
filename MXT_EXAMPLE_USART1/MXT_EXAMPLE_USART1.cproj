@@ -512,7 +512,6 @@
       <Value>../src/ASF/sam/drivers/spi</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
-  <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
   <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
@@ -530,6 +529,7 @@
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
+  <armgcc.linker.memorysettings.ExternalRAM />
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam/utils/linker_scripts/same70/same70q21/gcc/flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
@@ -677,7 +677,6 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Include\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
-    <Folder Include="src\ciclos\" />
     <Folder Include="src\config\" />
     <Folder Include="src\icones\" />
   </ItemGroup>
@@ -1339,19 +1338,10 @@
     <None Include="src\config\conf_ili9488.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="src\ciclos\ciclo.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\ciclos\cycles.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\func.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\icones\arrows.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\icones\icone1.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\icones\maquina.h">

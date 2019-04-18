@@ -98,12 +98,13 @@
 
 #define MAX_ENTRIES 3
 #define STRING_LENGTH 70
-#define STRING_MENU_LENGTH 70
+#define STRING_MENU_LENGTH 35
 
 #define USART_TX_MAX_LENGTH 0xff
 
-volatile int num_bot = 0;
-/** \brief Touch event struct */
+volatile unsigned char state = CHOOSE_STATE;
+//inicia o estado previo com um inexistente
+volatile unsigned char prev_state = -1;
 
 /*
 
@@ -113,7 +114,7 @@ Botoes do display
 */
 
 void initMenuOrder() {
-  c_rapido.previous = &c_enxague;
+  c_rapido.previous = &c_centrifuga;
   c_rapido.next = &c_diario;
 
   c_diario.previous = &c_rapido;
@@ -129,29 +130,95 @@ void initMenuOrder() {
   c_centrifuga.next = &c_rapido;
 }
 
-void lavagem_callback(void) {
-  /*	printf("Molhando a maquina\n\r");*/
-  //printf("Molhando a maquina\n\r");
-}
-
-void secagem_callback(void) {
-  //printf("Secando a maquina\n\r");
-}
-
 void next_callback(void) {
   actual_cycle = actual_cycle->next;
-
   draw_now = true;
 }
 
 void back_callback(void) {
   actual_cycle = actual_cycle->previous;
-
   draw_now = true;
 }
 
+void play_callback(void) {
+  state = RUN_STATE;
+  draw_now = true;
+}
+
+void pause_callback(void) {
+  state = CHOOSE_STATE;
+  draw_now = true;
+}
+
+static void BOT0_callback(uint32_t id, uint32_t mask) {
+  pio_set(LED0.pio, LED0.mask);
+  pio_set(LED1.pio, LED1.mask);
+  pio_set(LED2.pio, LED2.mask);
+  pio_set(LED3.pio, LED3.mask);
+}
+static void BOT1_callback(uint32_t id, uint32_t mask) {
+  pio_clear(LED0.pio, LED0.mask);
+  pio_clear(LED1.pio, LED1.mask);
+  pio_clear(LED2.pio, LED2.mask);
+  pio_clear(LED3.pio, LED3.mask);
+}
+static void BOT2_callback(uint32_t id, uint32_t mask) {
+  pio_set(LED0.pio, LED0.mask);
+  pio_set(LED1.pio, LED1.mask);
+  pio_set(LED2.pio, LED2.mask);
+  pio_set(LED3.pio, LED3.mask);
+}
+static void BOT3_callback(uint32_t id, uint32_t mask) {
+  pio_clear(LED0.pio, LED0.mask);
+  pio_clear(LED1.pio, LED1.mask);
+  pio_clear(LED2.pio, LED2.mask);
+  pio_clear(LED3.pio, LED3.mask);
+}
+
+void configure_pins(int state_pin) {
+  pmc_enable_periph_clk(LED0.id_pio);
+  pmc_enable_periph_clk(LED1.id_pio);
+  pmc_enable_periph_clk(LED2.id_pio);
+  pmc_enable_periph_clk(LED3.id_pio);
+
+  pmc_enable_periph_clk(BOT0.id_pio);
+  pmc_enable_periph_clk(BOT1.id_pio);
+  pmc_enable_periph_clk(BOT2.id_pio);
+  pmc_enable_periph_clk(BOT3.id_pio);
+
+  pio_set_output(LED0.pio, LED0.mask, state_pin, 0, 0);
+  pio_set_output(LED1.pio, LED1.mask, state_pin, 0, 0);
+  pio_set_output(LED2.pio, LED2.mask, state_pin, 0, 0);
+  pio_set_output(LED3.pio, LED3.mask, state_pin, 0, 0);
+
+  pio_set_input(BOT0.pio, BOT0.mask, PIO_PULLUP | PIO_DEBOUNCE);
+  pio_set_input(BOT1.pio, BOT1.mask, PIO_PULLUP | PIO_DEBOUNCE);
+  pio_set_input(BOT2.pio, BOT2.mask, PIO_PULLUP | PIO_DEBOUNCE);
+  pio_set_input(BOT3.pio, BOT3.mask, PIO_PULLUP | PIO_DEBOUNCE);
+
+  pio_enable_interrupt(BOT0.pio, BOT0.mask);
+  pio_enable_interrupt(BOT1.pio, BOT1.mask);
+  pio_enable_interrupt(BOT2.pio, BOT2.mask);
+  pio_enable_interrupt(BOT3.pio, BOT3.mask);
+
+  pio_handler_set(BOT0.pio, BOT0.id_pio, BOT0.mask, PIO_IT_FALL_EDGE, BOT0.p_handler); //BOT0.p_handler);
+  pio_handler_set(BOT1.pio, BOT1.id_pio, BOT1.mask, PIO_IT_FALL_EDGE, BOT1.p_handler); //BOT1.p_handler);
+  pio_handler_set(BOT2.pio, BOT2.id_pio, BOT2.mask, PIO_IT_FALL_EDGE, BOT2.p_handler); //BOT2.p_handler);
+  pio_handler_set(BOT3.pio, BOT3.id_pio, BOT3.mask, PIO_IT_FALL_EDGE, BOT3.p_handler); //BOT3.p_handler);
+
+  NVIC_EnableIRQ(BOT0.id_pio);
+  NVIC_EnableIRQ(BOT1.id_pio);
+  NVIC_EnableIRQ(BOT2.id_pio);
+  NVIC_EnableIRQ(BOT3.id_pio);
+
+  NVIC_SetPriority(BOT0.id_pio, 4);
+  NVIC_SetPriority(BOT1.id_pio, 4);
+  NVIC_SetPriority(BOT2.id_pio, 4);
+  NVIC_SetPriority(BOT3.id_pio, 4);
+}
+
 void draw_button(struct botao b[], uint N) {
-  for (int i = 0; i < N; i++) {
+  for (unsigned int i = 0; i < N; i++) {
     ili9488_draw_pixmap(b[i].x,
                         b[i].y,
                         b[i].image->width,
@@ -162,38 +229,93 @@ void draw_button(struct botao b[], uint N) {
 
 void draw_menu(t_ciclo *c) {
   char buf[STRING_MENU_LENGTH];
+
   ili9488_draw_pixmap(10,
                       10,
                       (c->image)->width,
                       (c->image)->height,
                       (c->image)->data);
+
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
   ili9488_draw_filled_rectangle(10, 138, 138, 168);
-
+  ili9488_draw_filled_rectangle(145, 10, 480, 220);
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
   ili9488_draw_string(10,
-                      138,
+                      145,
                       c->nome);
 
- 
-  ili9488_draw_string(145,
+  sprintf(buf, "Temperatura %d C", (c->temp));
+  ili9488_draw_string(155,
                       10,
-                      "Tempo enx. (min)");
+                      buf);
+  sprintf(buf, "Smart Bubbles %s", c->bubblesOn ? "On" : "Off");
+  ili9488_draw_string(155,
+                      30,
+                      buf);
+
+  sprintf(buf, "Heavy mode %s", c->heavy ? "On" : "Off");
+  ili9488_draw_string(155,
+                      50,
+                      buf);
+  sprintf(buf, "Tempo centr. %d minutos", c->centrifugacaoTempo);
+  ili9488_draw_string(155,
+                      80,
+                      buf);
+  sprintf(buf, "Qnt enx. %d", c->enxagueQnt);
+  ili9488_draw_string(155,
+                      100,
+                      buf);
+
+  sprintf(buf, "Tempo enx. %d minutos", c->enxagueTempo);
+  ili9488_draw_string(155,
+                      120,
+                      buf);
+
+  sprintf(buf, "Centr RMP %d", c->centrifugacaoRPM);
+  ili9488_draw_string(155,
+                      140,
+                      buf);
+  sprintf(buf, "Tempo total %d minutos", (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo));
+  ili9488_draw_string(155,
+                      180,
+                      buf);
 }
 
-void draw(void) {
+void draw(struct botao botoes[], int N) {
 
   if (draw_now) {
-    draw_menu(actual_cycle);
-    printf(actual_cycle->nome);
-    printf("\n");
 
-    draw_now = false;
+    switch (state) {
+
+    case CHOOSE_STATE:
+      if (state != prev_state) {
+        draw_screen();
+        draw_button(botoes, N);
+        prev_state = state;
+      }
+
+      draw_menu(actual_cycle);
+      draw_now = false;
+      break;
+
+    case RUN_STATE:
+      if (state != prev_state) {
+        draw_screen();
+        prev_state = state;
+        draw_button(botoes, N);
+      }
+
+      draw_now = false;
+      break;
+
+    default:
+      break;
+    }
   }
 }
 
 int processa_touch(struct botao b[], struct botao *rtn, uint N, uint x, uint y) {
-  for (int i = 0; i < N; i++) {
+  for (unsigned int i = 0; i < N; i++) {
     if ((x >= b[i].x) && (x <= (b[i].x + b[i].size_x)) && (y >= b[i].y) && (y <= (b[i].y + b[i].size_y))) {
 
       //("Encontrou botao %d \n\r", i);
@@ -294,6 +416,7 @@ static void mxt_init(struct mxt_device *device) {
 void draw_screen(void) {
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
   ili9488_draw_filled_rectangle(0, 0, ILI9488_LCD_WIDTH - 1, ILI9488_LCD_HEIGHT - 1);
+  ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
 }
 
 uint32_t convert_axis_system_x(uint32_t touch_x) {
@@ -352,7 +475,7 @@ void mxt_handler(struct mxt_device *device, struct botao botoes[], uint Nbotoes)
   } while ((mxt_is_message_pending(device)) & (i < MAX_ENTRIES));
 
 /* If there is any entries in the buffer, send them over USART */
-#ifndef test
+#ifdef TEST
 
   if (i > 0) {
     usart_serial_write_packet(USART_SERIAL_EXAMPLE, (uint8_t *)tx_buf, strlen(tx_buf));
@@ -375,6 +498,36 @@ int main(void) {
   configure_lcd();
   draw_screen();
   initMenuOrder();
+  configure_pins(1);
+
+  struct botao botoes[][10] = {
+      {
+          botaoLeft,
+          botaoPlay,
+          botaoRight,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+      },
+      {
+
+          botaoPause,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+      },
+  };
+  int botoes_num[] = {3, 1, 0};
 
   /* Initialize the mXT touch device */
   mxt_init(&device);
@@ -382,28 +535,25 @@ int main(void) {
   /* Initialize stdio on USART */
   stdio_serial_init(USART_SERIAL_EXAMPLE, &usart_serial_options);
 
-  printf("\n\rmaXTouch data USART transmitter\n\r");
+  printf("\n\rTesting uart connection\n\r");
 
   //pino led = {.id = 4, .id_pio = ID_PIOA, .mask = 1 << 4, .pio = PIOA};
 
   ili9488_draw_filled_rectangle(0, 0, ILI9488_LCD_WIDTH, ILI9488_LCD_HEIGHT);
-
-  num_bot = 3;
-  struct botao botoes[] = {botaoPlay, botaoRight, botaoLeft};
-  draw_button(botoes, num_bot);
-
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
-  //   ili9488_draw_string(botaoRight.x + botaoRight.image->width + 10,
-  //                       botaoRight.y + botaoRight.image->height / 2,
-  //                       "Local");
 
   /* -----------------------------------------------------*/
+  pio_clear(LED0.pio, LED0.mask);
+  pio_clear(LED1.pio, LED1.mask);
+  pio_clear(LED0.pio, LED2.mask);
+  pio_clear(LED3.pio, LED3.mask);
+
   while (true) {
-    draw();
+    draw(botoes[state], botoes_num[state]);
     /* Check for any pending messages and run message handler if any
 		 * message is found in the queue */
     if (mxt_is_message_pending(&device)) {
-      mxt_handler(&device, botoes, num_bot);
+      mxt_handler(&device, botoes[state], botoes_num[state]);
     }
   }
 

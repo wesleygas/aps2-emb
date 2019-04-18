@@ -1,11 +1,11 @@
 
 typedef struct ciclo t_ciclo;
 typedef struct ciclo {
-  char nome[32];          // nome do ciclo, para ser exibido
   int enxagueTempo;       // tempo que fica em cada enxague
   int enxagueQnt;         // quantidade de enxagues
   int centrifugacaoRPM;   // velocidade da centrifugacao
   int centrifugacaoTempo; // tempo que centrifuga
+  char nome[32];          // nome do ciclo, para ser exibido
   char heavy;             // modo pesado de lavagem
   char bubblesOn;         // smart bubbles on (???),
   char temp;
@@ -14,8 +14,11 @@ typedef struct ciclo {
   t_ciclo *next;
 };
 
+#include "icones/centrifuge.h"
+#include "icones/daily.h"
 #include "icones/pesado.h"
 #include "icones/rapido.h"
+#include "icones/water.h"
 
 t_ciclo c_rapido = {.nome = "Rapido",
                     .enxagueTempo = 5,
@@ -36,7 +39,7 @@ t_ciclo c_diario = {
     .heavy = 0,
     .bubblesOn = 1,
     .temp = 20,
-    .image = &pesado_icon};
+    .image = &daily_icon};
 
 t_ciclo c_pesado = {
     .nome = "Pesado",
@@ -58,7 +61,7 @@ t_ciclo c_enxague = {
     .heavy = 0,
     .bubblesOn = 0,
     .temp = 20,
-    .image = &rapido_icon};
+    .image = &water_icon};
 
 t_ciclo c_centrifuga = {
     .nome = "Centrifuga",
@@ -69,6 +72,6 @@ t_ciclo c_centrifuga = {
     .heavy = 0,
     .bubblesOn = 0,
     .temp = 20,
-    .image = &pesado_icon};
+    .image = &centrifuge_icon};
 
 t_ciclo *actual_cycle = &c_rapido;
