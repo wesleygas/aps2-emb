@@ -1,8 +1,11 @@
 void maquina_callback(void);
 void next_callback(void);
 void back_callback(void);
-void lavagem_callback(void);
-void secagem_callback(void);
+void play_callback(void);
+void clean_screen(void);
+
+#define CHOOSE_STATE 0
+#define RUN_STATE 1
 
 static void configure_lcd(void);
 struct ili9488_opt_t g_ili9488_display_opt;
@@ -50,12 +53,12 @@ struct botao botaoLeft = {
     .p_handler = back_callback};
 
 struct botao botaoPlay = {
-    .x = 200,
+    .x = 210,
     .y = 230,
     .size_x = 64,
     .size_y = 64,
     .image = &play,
-    .p_handler = secagem_callback};
+    .p_handler = play_callback};
 
 // struct botao botaoSecagem = {
 //     .x = 0,
@@ -66,7 +69,7 @@ struct botao botaoPlay = {
 //     .p_handler = secagem_callback};
 
 void draw_button(struct botao b[], uint N);
-void draw(void);
+void draw(struct botao botoes[], int N);
 
 volatile int main_menu = true;
 volatile int draw_now = true;

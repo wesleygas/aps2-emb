@@ -98,13 +98,15 @@
 
 #define MAX_ENTRIES 3
 #define STRING_LENGTH 70
-#define STRING_MENU_LENGTH 70
+#define STRING_MENU_LENGTH 35
 
 #define USART_TX_MAX_LENGTH 0xff
 
-volatile int num_bot = 0;
+volatile unsigned char state = CHOOSE_STATE;
+volatile unsigned char prev_state = -1;
 /** \brief Touch event struct */
 
+// struct botao *pbotoes;
 /*
 
 Callbacks das funcoes de callback 
@@ -112,30 +114,30 @@ Botoes do display
 
 */
 
+//struct botao botoes[][] = {{botaoPlay, botaoRight, botaoLeft, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+//                           {botaoPlay, botaoRight, botaoLeft, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+//                           {botaoPlay, botaoRight, botaoLeft, NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
+
 void initMenuOrder() {
-  c_rapido.previous = &c_enxague;
+  c_rapido.previous = &c_centrifuga;
   c_rapido.next = &c_diario;
+  c_rapido.botoes[0] = botaoLeft;
 
   c_diario.previous = &c_rapido;
   c_diario.next = &c_pesado;
+  c_diario.botoes[0] = botaoLeft;
 
   c_pesado.previous = &c_diario;
   c_pesado.next = &c_enxague;
+  c_pesado.botoes[0] = botaoLeft;
 
   c_enxague.previous = &c_pesado;
   c_enxague.next = &c_centrifuga;
+  c_enxague.botoes[0] = botaoLeft;
 
   c_centrifuga.previous = &c_enxague;
   c_centrifuga.next = &c_rapido;
-}
-
-void lavagem_callback(void) {
-  /*	printf("Molhando a maquina\n\r");*/
-  //printf("Molhando a maquina\n\r");
-}
-
-void secagem_callback(void) {
-  //printf("Secando a maquina\n\r");
+  c_centrifuga.botoes[0] = botaoLeft;
 }
 
 void next_callback(void) {
@@ -150,6 +152,16 @@ void back_callback(void) {
   draw_now = true;
 }
 
+void play_callback(void) {
+  state = RUN_STATE;
+}
+
+void clean_screen(void) {
+  ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
+  ili9488_draw_filled_rectangle(0, 0, ILI9488_LCD_WIDTH, ILI9488_LCD_HEIGHT);
+  ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
+}
+
 void draw_button(struct botao b[], uint N) {
   for (int i = 0; i < N; i++) {
     ili9488_draw_pixmap(b[i].x,
@@ -162,33 +174,52 @@ void draw_button(struct botao b[], uint N) {
 
 void draw_menu(t_ciclo *c) {
   char buf[STRING_MENU_LENGTH];
+
   ili9488_draw_pixmap(10,
                       10,
                       (c->image)->width,
                       (c->image)->height,
                       (c->image)->data);
+
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
   ili9488_draw_filled_rectangle(10, 138, 138, 168);
-
+  ili9488_draw_filled_rectangle(145, 10, 480, 220);
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
   ili9488_draw_string(10,
                       138,
                       c->nome);
 
- 
+  sprintf(buf, "Qnt enx. %d", c->enxagueQnt);
   ili9488_draw_string(145,
                       10,
-                      "Tempo enx. (min)");
+                      buf);
+  sprintf(buf, "Tempo enx. %d minutos", c->enxagueTempo);
+  ili9488_draw_string(145,
+                      30,
+                      buf);
+
+  sprintf(buf, "Tempo centr. %d minutos", c->centrifugacaoTempo);
+  ili9488_draw_string(145,
+                      50,
+                      buf);
+  sprintf(buf, "Tempo total %d minutos", (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo));
+  ili9488_draw_string(145,
+                      90,
+                      buf);
 }
 
-void draw(void) {
+void draw(struct botao botoes[], int N) {
 
   if (draw_now) {
-    draw_menu(actual_cycle);
-    printf(actual_cycle->nome);
-    printf("\n");
-
-    draw_now = false;
+    if (state == CHOOSE_STATE) {
+      if (state != prev_state) {
+        clean_screen();
+        prev_state = state;
+        draw_button(botoes, N);
+      }
+      draw_menu(actual_cycle);
+      draw_now = false;
+    }
   }
 }
 
@@ -376,6 +407,35 @@ int main(void) {
   draw_screen();
   initMenuOrder();
 
+  struct botao botoes[][10] = {
+      {
+          botaoLeft,
+          botaoPlay,
+          botaoRight,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+      },
+      {
+
+          botaoPlay,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+      },
+  };
+  int botoes_num[] = {3, 1, 0};
+
   /* Initialize the mXT touch device */
   mxt_init(&device);
 
@@ -388,9 +448,7 @@ int main(void) {
 
   ili9488_draw_filled_rectangle(0, 0, ILI9488_LCD_WIDTH, ILI9488_LCD_HEIGHT);
 
-  num_bot = 3;
-  struct botao botoes[] = {botaoPlay, botaoRight, botaoLeft};
-  draw_button(botoes, num_bot);
+  //draw_button(botoes[state], botoes_num[state]);
 
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
   //   ili9488_draw_string(botaoRight.x + botaoRight.image->width + 10,
@@ -399,11 +457,11 @@ int main(void) {
 
   /* -----------------------------------------------------*/
   while (true) {
-    draw();
+    draw(botoes[state], botoes_num[state]);
     /* Check for any pending messages and run message handler if any
 		 * message is found in the queue */
     if (mxt_is_message_pending(&device)) {
-      mxt_handler(&device, botoes, num_bot);
+      mxt_handler(&device, botoes[state], botoes_num[state]);
     }
   }
 
