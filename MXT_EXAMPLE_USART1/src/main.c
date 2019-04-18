@@ -201,10 +201,10 @@ void configure_pins(int state_pin) {
   pio_enable_interrupt(BOT2.pio, BOT2.mask);
   pio_enable_interrupt(BOT3.pio, BOT3.mask);
 
-  pio_handler_set(BOT0.pio, BOT0.id_pio, BOT0.mask, PIO_IT_FALL_EDGE, BOT0_callback); //BOT0.p_handler);
-  pio_handler_set(BOT1.pio, BOT1.id_pio, BOT1.mask, PIO_IT_FALL_EDGE, BOT1_callback); //BOT1.p_handler);
-  pio_handler_set(BOT2.pio, BOT2.id_pio, BOT2.mask, PIO_IT_FALL_EDGE, BOT2_callback); //BOT2.p_handler);
-  pio_handler_set(BOT3.pio, BOT3.id_pio, BOT3.mask, PIO_IT_FALL_EDGE, BOT3_callback); //BOT3.p_handler);
+  pio_handler_set(BOT0.pio, BOT0.id_pio, BOT0.mask, PIO_IT_FALL_EDGE, BOT0.p_handler); //BOT0.p_handler);
+  pio_handler_set(BOT1.pio, BOT1.id_pio, BOT1.mask, PIO_IT_FALL_EDGE, BOT1.p_handler); //BOT1.p_handler);
+  pio_handler_set(BOT2.pio, BOT2.id_pio, BOT2.mask, PIO_IT_FALL_EDGE, BOT2.p_handler); //BOT2.p_handler);
+  pio_handler_set(BOT3.pio, BOT3.id_pio, BOT3.mask, PIO_IT_FALL_EDGE, BOT3.p_handler); //BOT3.p_handler);
 
   NVIC_EnableIRQ(BOT0.id_pio);
   NVIC_EnableIRQ(BOT1.id_pio);
