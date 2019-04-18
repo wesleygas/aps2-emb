@@ -121,23 +121,18 @@ Botoes do display
 void initMenuOrder() {
   c_rapido.previous = &c_centrifuga;
   c_rapido.next = &c_diario;
-  c_rapido.botoes[0] = botaoLeft;
 
   c_diario.previous = &c_rapido;
   c_diario.next = &c_pesado;
-  c_diario.botoes[0] = botaoLeft;
 
   c_pesado.previous = &c_diario;
   c_pesado.next = &c_enxague;
-  c_pesado.botoes[0] = botaoLeft;
 
   c_enxague.previous = &c_pesado;
   c_enxague.next = &c_centrifuga;
-  c_enxague.botoes[0] = botaoLeft;
 
   c_centrifuga.previous = &c_enxague;
   c_centrifuga.next = &c_rapido;
-  c_centrifuga.botoes[0] = botaoLeft;
 }
 
 void next_callback(void) {
@@ -154,6 +149,12 @@ void back_callback(void) {
 
 void play_callback(void) {
   state = RUN_STATE;
+  draw_now = true;
+}
+
+void pause_callback(void) {
+  state = CHOOSE_STATE;
+  draw_now = true;
 }
 
 void clean_screen(void) {
@@ -186,39 +187,75 @@ void draw_menu(t_ciclo *c) {
   ili9488_draw_filled_rectangle(145, 10, 480, 220);
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
   ili9488_draw_string(10,
-                      138,
+                      145,
                       c->nome);
 
-  sprintf(buf, "Qnt enx. %d", c->enxagueQnt);
-  ili9488_draw_string(145,
+  sprintf(buf, "Temperatura %d C", (c->temp));
+  ili9488_draw_string(155,
                       10,
                       buf);
-  sprintf(buf, "Tempo enx. %d minutos", c->enxagueTempo);
-  ili9488_draw_string(145,
+  sprintf(buf, "Smart Bubbles %s", c->bubblesOn ? "On" : "Off");
+  ili9488_draw_string(155,
                       30,
                       buf);
 
-  sprintf(buf, "Tempo centr. %d minutos", c->centrifugacaoTempo);
-  ili9488_draw_string(145,
+  sprintf(buf, "Heavy mode %s", c->heavy ? "On" : "Off");
+  ili9488_draw_string(155,
                       50,
                       buf);
+  sprintf(buf, "Tempo centr. %d minutos", c->centrifugacaoTempo);
+  ili9488_draw_string(155,
+                      80,
+                      buf);
+  sprintf(buf, "Qnt enx. %d", c->enxagueQnt);
+  ili9488_draw_string(155,
+                      100,
+                      buf);
+
+  sprintf(buf, "Tempo enx. %d minutos", c->enxagueTempo);
+  ili9488_draw_string(155,
+                      120,
+                      buf);
+
+  sprintf(buf, "Centr RMP %d", c->centrifugacaoRPM);
+  ili9488_draw_string(155,
+                      140,
+                      buf);
   sprintf(buf, "Tempo total %d minutos", (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo));
-  ili9488_draw_string(145,
-                      90,
+  ili9488_draw_string(155,
+                      180,
                       buf);
 }
 
 void draw(struct botao botoes[], int N) {
 
   if (draw_now) {
-    if (state == CHOOSE_STATE) {
+
+    switch (state) {
+
+    case CHOOSE_STATE:
       if (state != prev_state) {
         clean_screen();
         prev_state = state;
         draw_button(botoes, N);
       }
+
       draw_menu(actual_cycle);
       draw_now = false;
+      break;
+
+    case RUN_STATE:
+      if (state != prev_state) {
+        clean_screen();
+        prev_state = state;
+        draw_button(botoes, N);
+      }
+
+      draw_now = false;
+      break;
+
+    default:
+      break;
     }
   }
 }
@@ -422,7 +459,7 @@ int main(void) {
       },
       {
 
-          botaoPlay,
+          botaoPause,
           NULL,
           NULL,
           NULL,
