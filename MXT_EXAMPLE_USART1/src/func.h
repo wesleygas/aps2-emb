@@ -2,22 +2,23 @@ void maquina_callback(void);
 void next_callback(void);
 void back_callback(void);
 void play_callback(void);
-void pause_callback(void);
+void cancel_callback(void);
+void blank_callback(void);
+void toggle_pause_callback(void);
 void configure_pins(int state);
 void draw_screen(void);
+void padlock_callback(void);
 
-#define CHOOSE_STATE 0
-#define RUN_STATE 1
+enum State {
+	CHOOSE_STATE = 0,
+	RUN_STATE,
+	FINISH_STATE,
+	CUSTOM_STATE,
+	};
 
 static void configure_lcd(void);
 struct ili9488_opt_t g_ili9488_display_opt;
 
-typedef struct {
-  const uint8_t *data;
-  uint16_t width;
-  uint16_t height;
-  uint8_t dataSize;
-} tImage;
 
 typedef struct {
   uint32_t id;
@@ -38,6 +39,11 @@ struct botao {
 
 #include "icones/arrows.h"
 #include "icones/pause.h"
+#include "icones/stop.h"
+#include "icones/padlock.h"
+#include "icones/unlocked.h"
+#include "icones/washComplete.h"
+#include "icones/backHome.h"
 
 struct botao botaoRight = {
     .x = 415,
@@ -62,14 +68,46 @@ struct botao botaoPlay = {
     .size_y = 64,
     .image = &play,
     .p_handler = play_callback};
+	
+struct botao botaoCancel = {
+	.x = 176,
+	.y = 191,
+	.size_x = 128,
+	.size_y = 128,
+	.image = &stop,
+.p_handler = cancel_callback};
 
-struct botao botaoPause = {
-    .x = 210,
-    .y = 230,
-    .size_x = 64,
-    .size_y = 64,
-    .image = &pause,
-    .p_handler = pause_callback};
+struct botao botaoDPlayPause = {
+	.x = 405,
+	.y = 10,
+	.size_x = 64,
+	.size_y = 64,
+	.image = &pause,
+.p_handler = toggle_pause_callback};
+
+struct botao botaoPadlock = {
+	.x = 85,
+	.y = 240,
+	.size_x = 64,
+	.size_y = 64,
+	.image = &padlock,
+.p_handler = padlock_callback};
+
+struct botao botaoWashComplete = {
+	.x = 180,
+	.y = 181,
+	.size_x = 118,
+	.size_y = 134,
+	.image = &washComplete,
+.p_handler = cancel_callback};
+
+struct botao botaoBackHome = {
+	.x = 10,
+	.y = 10,
+	.size_x = 64,
+	.size_y = 64,
+	.image = &backHome,
+.p_handler = cancel_callback};
 
 void draw_button(struct botao b[], uint N);
 void draw(struct botao botoes[], int N);
@@ -77,25 +115,25 @@ void draw(struct botao botoes[], int N);
 volatile int draw_now = true;
 
 //definindo leds
-pino LED0 = {
+const pino LED0 = {
     .id = 8,
     .mask = 1u << 8,
     .id_pio = ID_PIOC,
     .pio = PIOC,
 };
-pino LED1 = {
+const pino LED1 = {
     .id = 0,
     .mask = 1u << 0,
     .id_pio = ID_PIOA,
     .pio = PIOA,
 };
-pino LED2 = {
+const pino LED2 = {
     .id = 30,
     .mask = 1u << 30,
     .id_pio = ID_PIOC,
     .pio = PIOC,
 };
-pino LED3 = {
+const pino LED3 = {
     .id = 2,
     .mask = 1u << 2,
     .id_pio = ID_PIOB,
@@ -108,28 +146,37 @@ static void BOT1_callback(uint32_t id, uint32_t mask);
 static void BOT2_callback(uint32_t id, uint32_t mask);
 static void BOT3_callback(uint32_t id, uint32_t mask);
 
-pino BOT0 = {
+#define BUT1_PIO		  PIOD
+#define BUT1_MASK		  (1u << 28u)
+
+#define BUT2_PIO		  PIOC
+#define BUT2_MASK		  (1u << 31)
+
+#define BUT3_PIO		  PIOA
+#define BUT3_MASK		  (1u << 19)
+
+const pino BOT0 = {
     .id = 11,
     .mask = 1u << 11,
     .id_pio = ID_PIOA,
     .pio = PIOA,
     .p_handler = BOT0_callback};
 
-pino BOT1 = {
+const pino BOT1 = {
     .id = 28,
     .mask = 1u << 28,
     .id_pio = ID_PIOD,
     .pio = PIOD,
     .p_handler = BOT1_callback};
 
-pino BOT2 = {
+const pino BOT2 = {
     .id = 31,
     .mask = 1u << 31,
     .id_pio = ID_PIOC,
     .pio = PIOC,
     .p_handler = BOT2_callback};
 
-pino BOT3 = {
+const pino BOT3 = {
     .id = 19,
     .mask = 1u << 19,
     .id_pio = ID_PIOA,

@@ -1,4 +1,5 @@
-#include <string.h>
+#include "realtimeHelpers.h"
+
 
 
 /**
@@ -80,6 +81,36 @@ void calcTimeDiff(Horario curr_time, Horario est_finish, Horario *eta){
 	eta->hora = est_finish.hora - curr_time.hora;
 }
 
+void incTime(Horario *c_time){
+	int hora = c_time->hora;
+	int minuto = c_time->minuto;
+	int segundo = c_time->segundo;
+	segundo++;
+	if(segundo >= 60){
+		segundo = 0;
+		minuto++;
+		if(minuto >= 60){
+			minuto = 0;
+			hora++;
+			if(hora >= 23){
+				hora = 0;
+			}
+		}
+	}
+	c_time->hora = hora;
+	c_time->minuto = minuto;
+	c_time->segundo = segundo;
+	
+}
+
+
+void time_reset(Horario *c_time){
+	c_time->hora = 0;
+	c_time->minuto = 0;
+	c_time->segundo = 0;
+}
+
+
 
 /**
 * Configura o RTC para funcionar com interrupcao de alarme
@@ -105,3 +136,4 @@ void RTC_init(){
 	rtc_enable_interrupt(RTC,  RTC_IER_SECEN);
 
 }
+

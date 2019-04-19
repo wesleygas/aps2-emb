@@ -1,3 +1,7 @@
+#include <stdint.h>
+#include <string.h>
+#include "asf.h"
+
 //RTC constants
 //Date
 #define YEAR	2019
@@ -9,6 +13,7 @@
 #define MINUTE	59
 #define SECOND	50
 
+
 typedef struct Horario{
 	int hora;
 	int minuto;
@@ -18,4 +23,8 @@ typedef struct Horario{
 void RTC_Handler(void);
 void timeToString(char *str, Horario tempo);
 void calcTimeDiff(Horario curr_time, Horario est_finish, Horario *eta);
+void incTime(Horario *c_time);
+void time_reset(Horario *c_time);
 void RTC_init(void);
+
+Horario c_time;

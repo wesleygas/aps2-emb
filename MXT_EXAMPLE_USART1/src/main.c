@@ -1,86 +1,3 @@
-/**
- * \file
- *
- * \brief Example of usage of the maXTouch component with USART
- *
- * This example shows how to receive touch data from a maXTouch device
- * using the maXTouch component, and display them in a terminal window by using
- * the USART driver.
- *
- * Copyright (c) 2014-2018 Microchip Technology Inc. and its subsidiaries.
- *
- * \asf_license_start
- *
- * \page License
- *
- * Subject to your compliance with these terms, you may use Microchip
- * software and any derivatives exclusively with Microchip products.
- * It is your responsibility to comply with third party license terms applicable
- * to your use of third party software (including open source software) that
- * may accompany Microchip software.
- *
- * THIS SOFTWARE IS SUPPLIED BY MICROCHIP "AS IS". NO WARRANTIES,
- * WHETHER EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE,
- * INCLUDING ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY,
- * AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL MICROCHIP BE
- * LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE, INCIDENTAL OR CONSEQUENTIAL
- * LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND WHATSOEVER RELATED TO THE
- * SOFTWARE, HOWEVER CAUSED, EVEN IF MICROCHIP HAS BEEN ADVISED OF THE
- * POSSIBILITY OR THE DAMAGES ARE FORESEEABLE.  TO THE FULLEST EXTENT
- * ALLOWED BY LAW, MICROCHIP'S TOTAL LIABILITY ON ALL CLAIMS IN ANY WAY
- * RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT OF FEES, IF ANY,
- * THAT YOU HAVE PAID DIRECTLY TO MICROCHIP FOR THIS SOFTWARE.
- *
- * \asf_license_stop
- *
- */
-
-/**
- * \mainpage
- *
- * \section intro Introduction
- * This simple example reads data from the maXTouch device and sends it over
- * USART as ASCII formatted text.
- *
- * \section files Main files:
- * - example_usart.c: maXTouch component USART example file
- * - conf_mxt.h: configuration of the maXTouch component
- * - conf_board.h: configuration of board
- * - conf_clock.h: configuration of system clock
- * - conf_example.h: configuration of example
- * - conf_sleepmgr.h: configuration of sleep manager
- * - conf_twim.h: configuration of TWI driver
- * - conf_usart_serial.h: configuration of USART driver
- *
- * \section apiinfo maXTouch low level component API
- * The maXTouch component API can be found \ref mxt_group "here".
- *
- * \section deviceinfo Device Info
- * All UC3 and Xmega devices with a TWI module can be used with this component
- *
- * \section exampledescription Description of the example
- * This example will read data from the connected maXTouch explained board
- * over TWI. This data is then processed and sent over a USART data line
- * to the board controller. The board controller will create a USB CDC class
- * object on the host computer and repeat the incoming USART data from the
- * main controller to the host. On the host this object should appear as a
- * serial port object (COMx on windows, /dev/ttyxxx on your chosen Linux flavour).
- *
- * Connect a terminal application to the serial port object with the settings
- * Baud: 57600
- * Data bits: 8-bit
- * Stop bits: 1 bit
- * Parity: None
- *
- * \section compinfo Compilation Info
- * This software was written for the GNU GCC and IAR for AVR.
- * Other compilers may or may not work.
- *
- * \section contactinfo Contact Information
- * For further information, visit
- * <A href="http://www.atmel.com/">Atmel</A>.\n
- */
-
 #include <asf.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,6 +6,9 @@
 #include "conf_board.h"
 #include "conf_example.h"
 #include "conf_uart_serial.h"
+#include "tfont.h"
+#include "sans36.h"
+#include "realtimeHelpers.h"
 
 #include "func.h"
 
@@ -105,13 +25,33 @@
 volatile unsigned char state = CHOOSE_STATE;
 //inicia o estado previo com um inexistente
 volatile unsigned char prev_state = -1;
+volatile int paused = 0;
+volatile int p_paused = 0;
+volatile int lock_counter = -1;
+volatile int locked = 0;
+volatile int p_locked = 1;
+volatile int update = 1;
 
-/*
+#define  TEST
 
-Callbacks das funcoes de callback 
-Botoes do display
+static void RTT_init(uint16_t pllPreScale, uint32_t IrqNPulses);
+static void rtt_reconfigure(void);
 
-*/
+void RTT_Handler(void) {
+	uint32_t ul_status;
+
+	/* Get RTT status */
+	ul_status = rtt_get_status(RTT);
+
+	/* IRQ due to Time has changed */
+	if ((ul_status & RTT_SR_RTTINC) == RTT_SR_RTTINC) {
+	}
+
+	/* IRQ due to Alarm */
+	if ((ul_status & RTT_SR_ALMS) == RTT_SR_ALMS) {
+		update = 1;		
+	}
+}
 
 void initMenuOrder() {
   c_rapido.previous = &c_centrifuga;
@@ -131,60 +71,98 @@ void initMenuOrder() {
 }
 
 void next_callback(void) {
-  actual_cycle = actual_cycle->next;
-  draw_now = true;
+  if(!locked){
+	  actual_cycle = actual_cycle->next;
+	  draw_now = true;
+  }
 }
 
 void back_callback(void) {
-  actual_cycle = actual_cycle->previous;
-  draw_now = true;
+  if (!locked){
+	actual_cycle = actual_cycle->previous;
+	draw_now = true;
+  }
 }
 
 void play_callback(void) {
-  state = RUN_STATE;
-  draw_now = true;
+	if(!locked){
+	  state = RUN_STATE;
+	  draw_now = true;
+	  paused = false;
+	}
 }
 
-void pause_callback(void) {
-  state = CHOOSE_STATE;
-  draw_now = true;
+void toggle_pause_callback(void){
+	if(!locked){
+		paused = !paused;
+		draw_now = true;
+	}
 }
+
+void cancel_callback(void){
+	if(!locked){
+		state = CHOOSE_STATE;
+		draw_now = true;
+	}
+}
+
+void blank_callback(void){
+	
+}
+
+void padlock_callback(void){
+	if(locked){
+		ili9488_set_foreground_color(COLOR_CONVERT(COLOR_RED));
+		ili9488_draw_filled_rectangle(145,45,359,80);
+		ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
+		ili9488_draw_string(150, 50, "Bloqueio Ativado!");
+		delay_s(1);
+		draw_now = true;
+	}
+}
+
+void draw_lock(void){
+	if(locked){
+		botaoPadlock.image = &padlock;
+	}else{
+		botaoPadlock.image = &unlocked;
+	}
+	ili9488_draw_pixmap(botaoPadlock.x,
+	botaoPadlock.y,
+	botaoPadlock.image->width,
+	botaoPadlock.image->height,
+	botaoPadlock.image->data);
+}
+
+
 
 static void BOT0_callback(uint32_t id, uint32_t mask) {
-  pio_set(LED0.pio, LED0.mask);
-  pio_set(LED1.pio, LED1.mask);
-  pio_set(LED2.pio, LED2.mask);
-  pio_set(LED3.pio, LED3.mask);
+  locked = true;
+  lock_counter = 5;
 }
 static void BOT1_callback(uint32_t id, uint32_t mask) {
-  pio_clear(LED0.pio, LED0.mask);
-  pio_clear(LED1.pio, LED1.mask);
-  pio_clear(LED2.pio, LED2.mask);
-  pio_clear(LED3.pio, LED3.mask);
+  if(lock_counter < 0){
+	  lock_counter = 5; 
+  }
 }
 static void BOT2_callback(uint32_t id, uint32_t mask) {
-  pio_set(LED0.pio, LED0.mask);
-  pio_set(LED1.pio, LED1.mask);
-  pio_set(LED2.pio, LED2.mask);
-  pio_set(LED3.pio, LED3.mask);
+  //pio_set(LED0.pio, LED0.mask);
+ // pio_set(LED1.pio, LED1.mask);
+ // pio_set(LED2.pio, LED2.mask);
+  //pio_set(LED3.pio, LED3.mask);
 }
 static void BOT3_callback(uint32_t id, uint32_t mask) {
-  pio_clear(LED0.pio, LED0.mask);
-  pio_clear(LED1.pio, LED1.mask);
-  pio_clear(LED2.pio, LED2.mask);
-  pio_clear(LED3.pio, LED3.mask);
+  //pio_clear(LED0.pio, LED0.mask);
+ // pio_clear(LED1.pio, LED1.mask);
+  //pio_clear(LED2.pio, LED2.mask);
+  //pio_clear(LED3.pio, LED3.mask);
 }
 
 void configure_pins(int state_pin) {
-  pmc_enable_periph_clk(LED0.id_pio);
-  pmc_enable_periph_clk(LED1.id_pio);
-  pmc_enable_periph_clk(LED2.id_pio);
-  pmc_enable_periph_clk(LED3.id_pio);
-
-  pmc_enable_periph_clk(BOT0.id_pio);
-  pmc_enable_periph_clk(BOT1.id_pio);
-  pmc_enable_periph_clk(BOT2.id_pio);
-  pmc_enable_periph_clk(BOT3.id_pio);
+  pmc_enable_periph_clk(ID_PIOA);
+  pmc_enable_periph_clk(ID_PIOB);
+  pmc_enable_periph_clk(ID_PIOC);
+  pmc_enable_periph_clk(ID_PIOD);
 
   pio_set_output(LED0.pio, LED0.mask, state_pin, 0, 0);
   pio_set_output(LED1.pio, LED1.mask, state_pin, 0, 0);
@@ -215,6 +193,20 @@ void configure_pins(int state_pin) {
   NVIC_SetPriority(BOT1.id_pio, 4);
   NVIC_SetPriority(BOT2.id_pio, 4);
   NVIC_SetPriority(BOT3.id_pio, 4);
+}
+
+void font_draw_text(tFont *font, const char *text, int x, int y, int spacing) {
+	char *p = text;
+	while(*p != NULL) {
+		char letter = *p;
+		int letter_offset = letter - font->start_char;
+		if(letter <= font->end_char) {
+			tChar *current_char = font->chars + letter_offset;
+			ili9488_draw_pixmap(x, y, current_char->image->width, current_char->image->height, current_char->image->data);
+			x += current_char->image->width + spacing;
+		}
+		p++;
+	}
 }
 
 void draw_button(struct botao b[], uint N) {
@@ -281,6 +273,41 @@ void draw_menu(t_ciclo *c) {
                       buf);
 }
 
+void draw_dashboard(int draw_from_scratch ,t_ciclo *c){
+	char buf[STRING_MENU_LENGTH];
+	Horario c_duration;
+	Horario eta;
+	time_reset(&c_duration);
+	//time_reset(&eta);
+	c_duration.minuto = (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo);
+	//Cycle name
+	if(draw_from_scratch){
+		ili9488_draw_rectangle(120,10,360,100);
+		ili9488_draw_string(130, 15, c->nome);
+	}
+		calcTimeDiff(c_time,c_duration,&eta);
+		timeToString(buf,eta);
+		ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
+		ili9488_draw_filled_rectangle(140,45,358,80);
+		ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
+		font_draw_text(&sans36,buf, 160, 45, 2);
+		if(eta.hora == 0 && eta.minuto == 0 && eta.segundo == 0){
+			state = FINISH_STATE;
+			draw_now = true;
+		}
+	
+}
+
+void draw_finish_metrics()
+{	char buf[STRING_MENU_LENGTH];
+	ili9488_draw_rectangle(120,10,360,100);
+	ili9488_draw_string(130, 15, actual_cycle->nome);
+	sprintf(buf,"00:00:00");
+	font_draw_text(&sans36,buf, 160, 45, 2);
+	ili9488_draw_string(150, 150, "CICLO COMPLETO!");
+	
+}
+
 void draw(struct botao botoes[], int N) {
 
   if (draw_now) {
@@ -293,21 +320,53 @@ void draw(struct botao botoes[], int N) {
         draw_button(botoes, N);
         prev_state = state;
       }
-
       draw_menu(actual_cycle);
+	  
       draw_now = false;
       break;
 
     case RUN_STATE:
       if (state != prev_state) {
         draw_screen();
-        prev_state = state;
+        time_reset(&c_time);
         draw_button(botoes, N);
+		draw_dashboard((state != prev_state), actual_cycle);
+		prev_state = state;
       }
-
-      draw_now = false;
+	  draw_now = false;
+	  if(!paused){
+		  incTime(&c_time);
+		  draw_dashboard((state != prev_state), actual_cycle);
+		 
+	  }
+	  if(paused != p_paused){
+		   if(paused){
+			   botoes[1].image = &play;
+		   }else{
+			   botoes[1].image = &pause;
+		   }
+		   draw_button(botoes, N);
+		   p_paused = paused;
+	  }
+	  
+      
       break;
-
+	  
+	case FINISH_STATE:
+	
+	  if (state != prev_state) {
+		  draw_screen();
+		  draw_button(botoes, N);
+		  if(locked) draw_lock();
+		  prev_state = state;
+		  draw_finish_metrics();
+	  }
+	  draw_now = false;
+	  
+	  break;
+	case CUSTOM_STATE:
+	
+	  break;
     default:
       break;
     }
@@ -413,6 +472,36 @@ static void mxt_init(struct mxt_device *device) {
   mxt_write_config_reg(device, mxt_get_object_address(device, MXT_GEN_COMMANDPROCESSOR_T6, 0) + MXT_GEN_COMMANDPROCESSOR_CALIBRATE, 0x01);
 }
 
+static void RTT_init(uint16_t pllPreScale, uint32_t IrqNPulses) {
+	uint32_t ul_previous_time;
+
+	/* Configure RTT for a 1 second tick interrupt */
+	rtt_sel_source(RTT, false);
+	rtt_init(RTT, pllPreScale);
+
+	ul_previous_time = rtt_read_timer_value(RTT);
+	while (ul_previous_time == rtt_read_timer_value(RTT));
+
+	rtt_write_alarm_time(RTT, IrqNPulses + ul_previous_time);
+
+	/* Enable RTT interrupt */
+	NVIC_DisableIRQ(RTT_IRQn);
+	NVIC_ClearPendingIRQ(RTT_IRQn);
+	NVIC_SetPriority(RTT_IRQn, 3);
+	NVIC_EnableIRQ(RTT_IRQn);
+	rtt_enable_interrupt(RTT, RTT_MR_ALMIEN);
+}
+
+
+static void rtt_reconfigure() {
+	uint16_t pllPreScale = (int)(((float)32768) / 100.0);
+	uint32_t irqRTTvalue = 100;
+
+	// reinicia RTT para gerar um novo IRQ
+	RTT_init(pllPreScale, irqRTTvalue);
+
+}
+
 void draw_screen(void) {
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
   ili9488_draw_filled_rectangle(0, 0, ILI9488_LCD_WIDTH - 1, ILI9488_LCD_HEIGHT - 1);
@@ -461,7 +550,7 @@ void mxt_handler(struct mxt_device *device, struct botao botoes[], uint Nbotoes)
     struct botao bAtual;
     //contribuicao de status
     if (processa_touch(botoes, &bAtual, Nbotoes, conv_x, conv_y) && touch_event.status < 60) {
-      bAtual.p_handler();
+		bAtual.p_handler();
     }
     //update_screen(conv_x, conv_y);
     /* -----------------------------------------------------*/
@@ -514,9 +603,8 @@ int main(void) {
           NULL,
       },
       {
-
-          botaoPause,
-          NULL,
+          botaoCancel,
+          botaoDPlayPause,
           NULL,
           NULL,
           NULL,
@@ -526,8 +614,22 @@ int main(void) {
           NULL,
           NULL,
       },
+	  {
+      botaoWashComplete,
+      botaoBackHome,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      },
   };
-  int botoes_num[] = {3, 1, 0};
+  //Numero de botoes em cada estado 
+  int botoes_num[] = {3, 2, 2};
+	
 
   /* Initialize the mXT touch device */
   mxt_init(&device);
@@ -547,11 +649,38 @@ int main(void) {
   pio_clear(LED1.pio, LED1.mask);
   pio_clear(LED0.pio, LED2.mask);
   pio_clear(LED3.pio, LED3.mask);
-
+  lock_counter = -1;
+  locked = 0;
   while (true) {
-    draw(botoes[state], botoes_num[state]);
+    if(update){
+		rtt_reconfigure();
+		update = 0;
+		if(pio_get(LED0.pio,PIO_INPUT,LED0.mask)){
+			pio_clear(LED0.pio,LED0.mask);
+		}else{
+			pio_set(LED0.pio,LED0.mask);
+		}
+		if(locked){
+			if(!pio_get(BUT3_PIO,PIO_INPUT,BUT3_MASK)){	
+				if(lock_counter > 0){
+					lock_counter--;
+				}else{
+					locked = false;
+				}
+			}
+		}
+		if(p_locked != locked){
+			draw_lock();
+			p_locked = locked;
+		}
+		if(state == RUN_STATE){
+			draw_now = true;
+		}
+	}
+	draw(botoes[state], botoes_num[state]);
     /* Check for any pending messages and run message handler if any
 		 * message is found in the queue */
+	
     if (mxt_is_message_pending(&device)) {
       mxt_handler(&device, botoes[state], botoes_num[state]);
     }

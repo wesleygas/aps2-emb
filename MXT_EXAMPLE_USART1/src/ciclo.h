@@ -21,10 +21,10 @@ typedef struct ciclo {
 #include "icones/water.h"
 
 t_ciclo c_rapido = {.nome = "Rapido",
-                    .enxagueTempo = 5,
-                    .enxagueQnt = 3,
+                    .enxagueTempo = 1,
+                    .enxagueQnt = 1,
                     .centrifugacaoRPM = 900,
-                    .centrifugacaoTempo = 5,
+                    .centrifugacaoTempo = 0,
                     .heavy = 0,
                     .bubblesOn = 1,
                     .temp = 20,
