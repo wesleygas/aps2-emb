@@ -37,6 +37,122 @@ volatile int update = 1;
 static void RTT_init(uint16_t pllPreScale, uint32_t IrqNPulses);
 static void rtt_reconfigure(void);
 
+void temperature_plus_callback(void){
+	char temperatura = actual_cycle->temp;
+	if(temperatura < 100){
+		temperatura++;		
+	}else{
+		temperatura = 0;
+	}
+	actual_cycle->temp = temperatura;
+	draw_now = true;
+}
+void temperature_minus_callback(void){
+	char temperatura = actual_cycle->temp;
+	
+	if(temperatura >= 0){
+		temperatura--;
+	}else{
+		temperatura = 100;
+	}
+	
+	actual_cycle->temp = temperatura;
+	draw_now = true;
+}
+
+void bubbles_plus_callback(void){
+	actual_cycle->bubblesOn = 1;
+	draw_now = true;
+}
+void bubbles_minus_callback(void){
+	actual_cycle->bubblesOn = 0;
+	draw_now = true;
+}
+
+void centr_plus_callback(void){
+	int centrifuga = actual_cycle->centrifugacaoTempo;
+	if(centrifuga >= 30){
+		centrifuga = 0;
+	}else{
+		centrifuga++;
+	}
+	actual_cycle->centrifugacaoTempo = centrifuga;
+	draw_now = true;
+}
+void centr_minus_callback(void){
+	int centrifuga = actual_cycle->centrifugacaoTempo;
+	if(centrifuga <= 0){
+		centrifuga = 30;
+	}else{
+		centrifuga--;
+	}
+	actual_cycle->centrifugacaoTempo = centrifuga;
+	draw_now = true;	
+}
+
+void enx_plus_callback(void){
+	int quantEnx = actual_cycle->enxagueQnt;
+	if(quantEnx >= 10){
+		quantEnx = 0;
+	}else{
+		quantEnx++;
+	}
+	actual_cycle->enxagueQnt = quantEnx;
+	draw_now = true;
+}
+void enx_minus_callback(void){
+	int quantEnx = actual_cycle->enxagueQnt;
+	if(quantEnx <= 0){
+		quantEnx = 10;
+		}else{
+		quantEnx--;
+	}
+	actual_cycle->enxagueQnt = quantEnx;
+	draw_now = true;
+}
+
+void tempo_enx_plus_callback(void){
+	int tempEnx = actual_cycle->enxagueTempo;
+	if(tempEnx >= 10){
+		tempEnx = 0;
+		}else{
+		tempEnx++;
+	}
+	actual_cycle->enxagueTempo = tempEnx;
+	draw_now = true;
+}
+void tempo_enx_minus_callback(void){
+	int tempEnx = actual_cycle->enxagueTempo;
+	if(tempEnx <= 0){
+		tempEnx = 10;
+		}else{
+		tempEnx--;
+	}
+	actual_cycle->enxagueTempo = tempEnx;
+	draw_now = true;
+}
+
+void rpm_plus_callback(void){
+	int rpm = actual_cycle->centrifugacaoRPM;
+	if(rpm >= 3000){
+		rpm = 100;
+	}else{
+		rpm+= 100;
+	}
+	actual_cycle->centrifugacaoRPM = rpm;
+	draw_now = true;
+}
+void rpm_minus_callback(void){
+	int rpm = actual_cycle->centrifugacaoRPM;
+	if(rpm <= 100){
+		rpm = 3000;
+		}else{
+		rpm-= 100;
+	}
+	actual_cycle->centrifugacaoRPM = rpm;
+	draw_now = true;
+}
+
 void RTT_Handler(void) {
 	uint32_t ul_status;
 
@@ -54,7 +170,7 @@ void RTT_Handler(void) {
 }
 
 void initMenuOrder() {
-  c_rapido.previous = &c_centrifuga;
+  c_rapido.previous = &c_custom;
   c_rapido.next = &c_diario;
 
   c_diario.previous = &c_rapido;
@@ -67,21 +183,34 @@ void initMenuOrder() {
   c_enxague.next = &c_centrifuga;
 
   c_centrifuga.previous = &c_enxague;
-  c_centrifuga.next = &c_rapido;
+  c_centrifuga.next = &c_custom;
+  
+  c_custom.previous = &c_centrifuga;
+  c_custom.next = &c_rapido;
 }
 
 void next_callback(void) {
   if(!locked){
 	  actual_cycle = actual_cycle->next;
 	  draw_now = true;
-  }
+	  if(!strcmp(actual_cycle->nome,"Customize")){
+		  state = CUSTOM_STATE;
+	  }else{
+		  state = CHOOSE_STATE;
+	  }
+	 }
 }
 
 void back_callback(void) {
   if (!locked){
 	actual_cycle = actual_cycle->previous;
 	draw_now = true;
-  }
+	if(!strcmp(actual_cycle->nome,"Customize")){
+		state = CUSTOM_STATE;
+		}else{
+		state = CHOOSE_STATE;
+	}
+	}
 }
 
 void play_callback(void) {
@@ -103,6 +232,11 @@ void cancel_callback(void){
 	if(!locked){
 		state = CHOOSE_STATE;
 		draw_now = true;
+		if(!strcmp(actual_cycle->nome,"Customize")){
+			state = CUSTOM_STATE;
+			}else{
+			state = CHOOSE_STATE;
+		}
 	}
 }
 
@@ -242,35 +376,85 @@ void draw_menu(t_ciclo *c) {
                       buf);
   sprintf(buf, "Smart Bubbles %s", c->bubblesOn ? "On" : "Off");
   ili9488_draw_string(155,
-                      30,
+                      35,
                       buf);
 
   sprintf(buf, "Heavy mode %s", c->heavy ? "On" : "Off");
   ili9488_draw_string(155,
-                      50,
+                      60,
                       buf);
   sprintf(buf, "Tempo centr. %d minutos", c->centrifugacaoTempo);
   ili9488_draw_string(155,
-                      80,
+                      85,
                       buf);
   sprintf(buf, "Qnt enx. %d", c->enxagueQnt);
   ili9488_draw_string(155,
-                      100,
+                      110,
                       buf);
 
   sprintf(buf, "Tempo enx. %d minutos", c->enxagueTempo);
   ili9488_draw_string(155,
-                      120,
+                      135,
                       buf);
 
   sprintf(buf, "Centr RMP %d", c->centrifugacaoRPM);
   ili9488_draw_string(155,
-                      140,
+                      160,
                       buf);
   sprintf(buf, "Tempo total %d minutos", (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo));
   ili9488_draw_string(155,
-                      180,
+                      185,
                       buf);
+}
+
+void draw_custom_menu(t_ciclo *c) {
+	char buf[STRING_MENU_LENGTH];
+
+	ili9488_draw_pixmap(10,
+	10,
+	(c->image)->width,
+	(c->image)->height,
+	(c->image)->data);
+
+	ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
+	ili9488_draw_filled_rectangle(10, 138, 138, 168);
+	ili9488_draw_filled_rectangle(145, 10, 480, 220);
+	ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
+	ili9488_draw_string(10,
+	145,
+	c->nome);
+
+	sprintf(buf, "Temperatura %d C", (c->temp));
+	ili9488_draw_string(155,
+	10,
+	buf);
+	sprintf(buf, "Smart Bubbles %s", c->bubblesOn ? "On" : "Off");
+	ili9488_draw_string(155,
+	40,
+	buf);
+	
+	sprintf(buf, "Tempo centr. %d min", c->centrifugacaoTempo);
+	ili9488_draw_string(155,
+	70,
+	buf);
+	sprintf(buf, "Qnt enx. %d", c->enxagueQnt);
+	ili9488_draw_string(155,
+	100,
+	buf);
+
+	sprintf(buf, "Tempo enx. %d min", c->enxagueTempo);
+	ili9488_draw_string(155,
+	135,
+	buf);
+
+	sprintf(buf, "Centr RMP %d", c->centrifugacaoRPM);
+	ili9488_draw_string(155,
+	160,
+	buf);
+	sprintf(buf, "Tempo total %d min", (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo));
+	ili9488_draw_string(155,
+	185,
+	buf);
 }
 
 void draw_dashboard(int draw_from_scratch ,t_ciclo *c){
@@ -353,7 +537,6 @@ void draw(struct botao botoes[], int N) {
       break;
 	  
 	case FINISH_STATE:
-	
 	  if (state != prev_state) {
 		  draw_screen();
 		  draw_button(botoes, N);
@@ -365,7 +548,13 @@ void draw(struct botao botoes[], int N) {
 	  
 	  break;
 	case CUSTOM_STATE:
-	
+		if (state != prev_state) {
+			draw_screen();
+			prev_state = state;
+		}
+		draw_custom_menu(actual_cycle);
+		draw_button(botoes, N);
+		draw_now = false;
 	  break;
     default:
       break;
@@ -589,7 +778,7 @@ int main(void) {
   initMenuOrder();
   configure_pins(1);
 
-  struct botao botoes[][10] = {
+  struct botao botoes[][15] = {
       {
           botaoLeft,
           botaoPlay,
@@ -601,6 +790,11 @@ int main(void) {
           NULL,
           NULL,
           NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
       },
       {
           botaoCancel,
@@ -613,22 +807,50 @@ int main(void) {
           NULL,
           NULL,
           NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
       },
 	  {
-      botaoWashComplete,
-      botaoBackHome,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
+		  botaoWashComplete,
+		  botaoBackHome,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
+		  NULL,
       },
+	  {
+		  botaoLeft,
+		  botaoPlay,
+		  botaoRight,
+		  botaoPlusTemperature,
+		  botaoMinusTemperature,
+		  botaoPlusBubbles,
+		  botaoMinusBubbles,
+		  botaoPlusCentr,
+		  botaoMinusCentr,
+		  botaoPlusEnx,
+		  botaoMinusEnx,
+		  botaoPlusTempoEnx,
+		  botaoMinusTempoEnx,
+		  botaoPlusRPM,
+		  botaoMinusRPM,
+		  
+	  }
   };
   //Numero de botoes em cada estado 
-  int botoes_num[] = {3, 2, 2};
+  int botoes_num[] = {3, 2, 2, 15};
 	
 
   /* Initialize the mXT touch device */
@@ -645,10 +867,10 @@ int main(void) {
   ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
 
   /* -----------------------------------------------------*/
-  pio_clear(LED0.pio, LED0.mask);
-  pio_clear(LED1.pio, LED1.mask);
-  pio_clear(LED0.pio, LED2.mask);
-  pio_clear(LED3.pio, LED3.mask);
+  pio_set(LED0.pio, LED0.mask);
+  pio_set(LED1.pio, LED1.mask);
+  pio_set(LED0.pio, LED2.mask);
+  pio_set(LED3.pio, LED3.mask);
   lock_counter = -1;
   locked = 0;
   while (true) {
@@ -661,6 +883,7 @@ int main(void) {
 			pio_set(LED0.pio,LED0.mask);
 		}
 		if(locked){
+			pio_clear(LED3.pio,LED3.mask);
 			if(!pio_get(BUT3_PIO,PIO_INPUT,BUT3_MASK)){	
 				if(lock_counter > 0){
 					lock_counter--;
@@ -668,6 +891,8 @@ int main(void) {
 					locked = false;
 				}
 			}
+		}else{
+			pio_set(LED3.pio,LED3.mask);
 		}
 		if(p_locked != locked){
 			draw_lock();

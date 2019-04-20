@@ -4,6 +4,20 @@ void back_callback(void);
 void play_callback(void);
 void cancel_callback(void);
 void blank_callback(void);
+
+void temperature_plus_callback(void);
+void temperature_minus_callback(void);
+void bubbles_plus_callback(void);
+void bubbles_minus_callback(void);
+void centr_plus_callback(void);
+void centr_minus_callback(void);
+void enx_plus_callback(void);
+void enx_minus_callback(void);
+void tempo_enx_plus_callback(void);
+void tempo_enx_minus_callback(void);
+void rpm_plus_callback(void);
+void rpm_minus_callback(void);
+
 void toggle_pause_callback(void);
 void configure_pins(int state);
 void draw_screen(void);
@@ -44,6 +58,8 @@ struct botao {
 #include "icones/unlocked.h"
 #include "icones/washComplete.h"
 #include "icones/backHome.h"
+#include "icones/plus.h"
+#include "icones/minus.h"
 
 struct botao botaoRight = {
     .x = 415,
@@ -108,6 +124,106 @@ struct botao botaoBackHome = {
 	.size_y = 64,
 	.image = &backHome,
 .p_handler = cancel_callback};
+
+
+
+struct botao botaoPlusTemperature = {
+	.x = 446,
+	.y = 10,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &plus,
+.p_handler = temperature_plus_callback};
+
+struct botao botaoMinusTemperature = {
+	.x = 417,
+	.y = 10,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &minus,
+.p_handler = temperature_minus_callback};
+
+struct botao botaoPlusBubbles = {
+	.x = 446,
+	.y = 40,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &plus,
+.p_handler = bubbles_plus_callback};
+
+struct botao botaoMinusBubbles = {
+	.x = 417,
+	.y = 40,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &minus,
+.p_handler = bubbles_minus_callback};
+
+struct botao botaoPlusCentr = {
+	.x = 446,
+	.y = 70,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &plus,
+.p_handler = centr_plus_callback};
+
+struct botao botaoMinusCentr = {
+	.x = 417,
+	.y = 70,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &minus,
+.p_handler = centr_minus_callback};
+
+struct botao botaoPlusEnx = {
+	.x = 446,
+	.y = 100,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &plus,
+.p_handler = enx_plus_callback};
+
+struct botao botaoMinusEnx = {
+	.x = 417,
+	.y = 100,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &minus,
+.p_handler = enx_minus_callback};
+
+struct botao botaoPlusTempoEnx = {
+	.x = 446,
+	.y = 130,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &plus,
+.p_handler = tempo_enx_plus_callback};
+
+struct botao botaoMinusTempoEnx = {
+	.x = 417,
+	.y = 130,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &minus,
+.p_handler = tempo_enx_minus_callback};
+
+struct botao botaoPlusRPM = {
+	.x = 446,
+	.y = 160,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &plus,
+.p_handler = rpm_plus_callback};
+
+struct botao botaoMinusRPM = {
+	.x = 417,
+	.y = 160,
+	.size_x = 24,
+	.size_y = 24,
+	.image = &minus,
+.p_handler = rpm_minus_callback};
+
+
 
 void draw_button(struct botao b[], uint N);
 void draw(struct botao botoes[], int N);

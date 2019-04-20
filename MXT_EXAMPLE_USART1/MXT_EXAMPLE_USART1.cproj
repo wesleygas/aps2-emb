@@ -707,7 +707,16 @@
     <Compile Include="src\icones\backHome.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\icones\custom.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\icones\minus.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\icones\padlock.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\icones\plus.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\icones\unlocked.h">

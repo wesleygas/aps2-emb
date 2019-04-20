@@ -19,16 +19,18 @@ typedef struct ciclo {
 #include "icones/pesado.h"
 #include "icones/rapido.h"
 #include "icones/water.h"
+#include "icones/custom.h"
 
-t_ciclo c_rapido = {.nome = "Rapido",
-                    .enxagueTempo = 1,
-                    .enxagueQnt = 1,
-                    .centrifugacaoRPM = 900,
-                    .centrifugacaoTempo = 0,
-                    .heavy = 0,
-                    .bubblesOn = 1,
-                    .temp = 20,
-                    .image = &rapido_icon};
+t_ciclo c_rapido = {
+	.nome = "Rapido",
+    .enxagueTempo = 1,
+    .enxagueQnt = 1,
+    .centrifugacaoRPM = 900,
+    .centrifugacaoTempo = 0,
+    .heavy = 0,
+    .bubblesOn = 1,
+    .temp = 20,
+    .image = &rapido_icon};
 
 t_ciclo c_diario = {
     .nome = "Diario",
@@ -73,5 +75,17 @@ t_ciclo c_centrifuga = {
     .bubblesOn = 0,
     .temp = 20,
     .image = &centrifuge_icon};
+
+t_ciclo c_custom = {
+	.nome = "Customize",
+	.enxagueTempo = 5,
+	.enxagueQnt = 2,
+	.centrifugacaoRPM = 1200,
+	.centrifugacaoTempo = 10,
+	.heavy = 0,
+	.bubblesOn = 0,
+	.temp = 27,
+.image = &custom};
+
 
 t_ciclo *actual_cycle = &c_rapido;
