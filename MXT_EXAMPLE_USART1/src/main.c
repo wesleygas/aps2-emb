@@ -229,7 +229,9 @@ void play_callback(void) {
 
 void toggle_pause_callback(void) {
   if (!locked) {
-    paused = !paused;
+    if (pio_get(BOT2.pio, PIO_INPUT, BOT2.mask)) {
+      paused = !paused;
+    }
     if (paused) {
       pio_set(LED1.pio, LED1.mask);
     } else {
