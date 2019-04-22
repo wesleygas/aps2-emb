@@ -4,10 +4,15 @@
 #include <string.h>
 
 #include "conf_board.h"
+
 #include "conf_example.h"
+
 #include "conf_uart_serial.h"
+
 #include "tfont.h"
+
 #include "sans36.h"
+
 #include "realtimeHelpers.h"
 
 #include "func.h"
@@ -32,141 +37,141 @@ volatile int locked = 0;
 volatile int p_locked = 1;
 volatile int update = 1;
 
-#define  TEST
+#define TEST
 
 static void RTT_init(uint16_t pllPreScale, uint32_t IrqNPulses);
 static void rtt_reconfigure(void);
 
-void temperature_plus_callback(void){
-	char temperatura = actual_cycle->temp;
-	if(temperatura < 100){
-		temperatura++;		
-	}else{
-		temperatura = 0;
-	}
-	actual_cycle->temp = temperatura;
-	draw_now = true;
+void temperature_plus_callback(void) {
+  char temperatura = actual_cycle->temp;
+  if (temperatura < 100) {
+    temperatura++;
+  } else {
+    temperatura = 0;
+  }
+  actual_cycle->temp = temperatura;
+  draw_now = true;
 }
-void temperature_minus_callback(void){
-	char temperatura = actual_cycle->temp;
-	
-	if(temperatura >= 0){
-		temperatura--;
-	}else{
-		temperatura = 100;
-	}
-	
-	actual_cycle->temp = temperatura;
-	draw_now = true;
+void temperature_minus_callback(void) {
+  char temperatura = actual_cycle->temp;
+
+  if (temperatura >= 0) {
+    temperatura--;
+  } else {
+    temperatura = 100;
+  }
+
+  actual_cycle->temp = temperatura;
+  draw_now = true;
 }
 
-void bubbles_plus_callback(void){
-	actual_cycle->bubblesOn = 1;
-	draw_now = true;
+void bubbles_plus_callback(void) {
+  actual_cycle->bubblesOn = 1;
+  draw_now = true;
 }
-void bubbles_minus_callback(void){
-	actual_cycle->bubblesOn = 0;
-	draw_now = true;
-}
-
-void centr_plus_callback(void){
-	int centrifuga = actual_cycle->centrifugacaoTempo;
-	if(centrifuga >= 30){
-		centrifuga = 0;
-	}else{
-		centrifuga++;
-	}
-	actual_cycle->centrifugacaoTempo = centrifuga;
-	draw_now = true;
-}
-void centr_minus_callback(void){
-	int centrifuga = actual_cycle->centrifugacaoTempo;
-	if(centrifuga <= 0){
-		centrifuga = 30;
-	}else{
-		centrifuga--;
-	}
-	actual_cycle->centrifugacaoTempo = centrifuga;
-	draw_now = true;	
+void bubbles_minus_callback(void) {
+  actual_cycle->bubblesOn = 0;
+  draw_now = true;
 }
 
-void enx_plus_callback(void){
-	int quantEnx = actual_cycle->enxagueQnt;
-	if(quantEnx >= 10){
-		quantEnx = 0;
-	}else{
-		quantEnx++;
-	}
-	actual_cycle->enxagueQnt = quantEnx;
-	draw_now = true;
+void centr_plus_callback(void) {
+  int centrifuga = actual_cycle->centrifugacaoTempo;
+  if (centrifuga >= 30) {
+    centrifuga = 0;
+  } else {
+    centrifuga++;
+  }
+  actual_cycle->centrifugacaoTempo = centrifuga;
+  draw_now = true;
 }
-void enx_minus_callback(void){
-	int quantEnx = actual_cycle->enxagueQnt;
-	if(quantEnx <= 0){
-		quantEnx = 10;
-		}else{
-		quantEnx--;
-	}
-	actual_cycle->enxagueQnt = quantEnx;
-	draw_now = true;
-}
-
-void tempo_enx_plus_callback(void){
-	int tempEnx = actual_cycle->enxagueTempo;
-	if(tempEnx >= 10){
-		tempEnx = 0;
-		}else{
-		tempEnx++;
-	}
-	actual_cycle->enxagueTempo = tempEnx;
-	draw_now = true;
-}
-void tempo_enx_minus_callback(void){
-	int tempEnx = actual_cycle->enxagueTempo;
-	if(tempEnx <= 0){
-		tempEnx = 10;
-		}else{
-		tempEnx--;
-	}
-	actual_cycle->enxagueTempo = tempEnx;
-	draw_now = true;
+void centr_minus_callback(void) {
+  int centrifuga = actual_cycle->centrifugacaoTempo;
+  if (centrifuga <= 0) {
+    centrifuga = 30;
+  } else {
+    centrifuga--;
+  }
+  actual_cycle->centrifugacaoTempo = centrifuga;
+  draw_now = true;
 }
 
-void rpm_plus_callback(void){
-	int rpm = actual_cycle->centrifugacaoRPM;
-	if(rpm >= 3000){
-		rpm = 100;
-	}else{
-		rpm+= 100;
-	}
-	actual_cycle->centrifugacaoRPM = rpm;
-	draw_now = true;
+void enx_plus_callback(void) {
+  int quantEnx = actual_cycle->enxagueQnt;
+  if (quantEnx >= 10) {
+    quantEnx = 0;
+  } else {
+    quantEnx++;
+  }
+  actual_cycle->enxagueQnt = quantEnx;
+  draw_now = true;
 }
-void rpm_minus_callback(void){
-	int rpm = actual_cycle->centrifugacaoRPM;
-	if(rpm <= 100){
-		rpm = 3000;
-		}else{
-		rpm-= 100;
-	}
-	actual_cycle->centrifugacaoRPM = rpm;
-	draw_now = true;
+void enx_minus_callback(void) {
+  int quantEnx = actual_cycle->enxagueQnt;
+  if (quantEnx <= 0) {
+    quantEnx = 10;
+  } else {
+    quantEnx--;
+  }
+  actual_cycle->enxagueQnt = quantEnx;
+  draw_now = true;
+}
+
+void tempo_enx_plus_callback(void) {
+  int tempEnx = actual_cycle->enxagueTempo;
+  if (tempEnx >= 10) {
+    tempEnx = 0;
+  } else {
+    tempEnx++;
+  }
+  actual_cycle->enxagueTempo = tempEnx;
+  draw_now = true;
+}
+void tempo_enx_minus_callback(void) {
+  int tempEnx = actual_cycle->enxagueTempo;
+  if (tempEnx <= 0) {
+    tempEnx = 10;
+  } else {
+    tempEnx--;
+  }
+  actual_cycle->enxagueTempo = tempEnx;
+  draw_now = true;
+}
+
+void rpm_plus_callback(void) {
+  int rpm = actual_cycle->centrifugacaoRPM;
+  if (rpm >= 3000) {
+    rpm = 100;
+  } else {
+    rpm += 100;
+  }
+  actual_cycle->centrifugacaoRPM = rpm;
+  draw_now = true;
+}
+void rpm_minus_callback(void) {
+  int rpm = actual_cycle->centrifugacaoRPM;
+  if (rpm <= 100) {
+    rpm = 3000;
+  } else {
+    rpm -= 100;
+  }
+  actual_cycle->centrifugacaoRPM = rpm;
+  draw_now = true;
 }
 
 void RTT_Handler(void) {
-	uint32_t ul_status;
+  uint32_t ul_status;
 
-	/* Get RTT status */
-	ul_status = rtt_get_status(RTT);
+  /* Get RTT status */
+  ul_status = rtt_get_status(RTT);
 
-	/* IRQ due to Time has changed */
-	if ((ul_status & RTT_SR_RTTINC) == RTT_SR_RTTINC) {
-	}
+  /* IRQ due to Time has changed */
+  if ((ul_status & RTT_SR_RTTINC) == RTT_SR_RTTINC) {
+  }
 
-	/* IRQ due to Alarm */
-	if ((ul_status & RTT_SR_ALMS) == RTT_SR_ALMS) {
-		update = 1;		
-	}
+  /* IRQ due to Alarm */
+  if ((ul_status & RTT_SR_ALMS) == RTT_SR_ALMS) {
+    update = 1;
+  }
 }
 
 void initMenuOrder() {
@@ -184,110 +189,114 @@ void initMenuOrder() {
 
   c_centrifuga.previous = &c_enxague;
   c_centrifuga.next = &c_custom;
-  
+
   c_custom.previous = &c_centrifuga;
   c_custom.next = &c_rapido;
 }
 
 void next_callback(void) {
-  if(!locked){
-	  actual_cycle = actual_cycle->next;
-	  draw_now = true;
-	  if(!strcmp(actual_cycle->nome,"Customize")){
-		  state = CUSTOM_STATE;
-	  }else{
-		  state = CHOOSE_STATE;
-	  }
-	 }
+  if (!locked) {
+    actual_cycle = actual_cycle->next;
+    draw_now = true;
+    if (!strcmp(actual_cycle->nome, "Customize")) {
+      state = CUSTOM_STATE;
+    } else {
+      state = CHOOSE_STATE;
+    }
+  }
 }
 
 void back_callback(void) {
-  if (!locked){
-	actual_cycle = actual_cycle->previous;
-	draw_now = true;
-	if(!strcmp(actual_cycle->nome,"Customize")){
-		state = CUSTOM_STATE;
-		}else{
-		state = CHOOSE_STATE;
-	}
-	}
+  if (!locked) {
+    actual_cycle = actual_cycle->previous;
+    draw_now = true;
+    if (!strcmp(actual_cycle->nome, "Customize")) {
+      state = CUSTOM_STATE;
+    } else {
+      state = CHOOSE_STATE;
+    }
+  }
 }
 
 void play_callback(void) {
-	if(!locked){
-	  state = RUN_STATE;
-	  draw_now = true;
-	  paused = false;
-	}
+  if (!locked && pio_get(BOT2.pio, PIO_INPUT, BOT2.mask)) {
+    state = RUN_STATE;
+    draw_now = true;
+    paused = false;
+    pio_clear(LED1.pio, LED1.mask);
+  }
 }
 
-void toggle_pause_callback(void){
-	if(!locked){
-		paused = !paused;
-		draw_now = true;
-	}
+void toggle_pause_callback(void) {
+  if (!locked) {
+    paused = !paused;
+    if (paused) {
+      pio_set(LED1.pio, LED1.mask);
+    } else {
+      pio_clear(LED1.pio, LED1.mask);
+    }
+    draw_now = true;
+  }
 }
 
-void cancel_callback(void){
-	if(!locked){
-		state = CHOOSE_STATE;
-		draw_now = true;
-		if(!strcmp(actual_cycle->nome,"Customize")){
-			state = CUSTOM_STATE;
-			}else{
-			state = CHOOSE_STATE;
-		}
-	}
+void cancel_callback(void) {
+  if (!locked) {
+    state = CHOOSE_STATE;
+    pio_set(LED1.pio, LED1.mask);
+    draw_now = true;
+    if (!strcmp(actual_cycle->nome, "Customize")) {
+      state = CUSTOM_STATE;
+    } else {
+      state = CHOOSE_STATE;
+    }
+  }
 }
 
-void blank_callback(void){
-	
+void blank_callback(void) {
 }
 
-void padlock_callback(void){
-	if(locked){
-		ili9488_set_foreground_color(COLOR_CONVERT(COLOR_RED));
-		ili9488_draw_filled_rectangle(145,45,359,80);
-		ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
-		ili9488_draw_string(150, 50, "Bloqueio Ativado!");
-		delay_s(1);
-		draw_now = true;
-	}
+void padlock_callback(void) {
+  if (locked) {
+    ili9488_set_foreground_color(COLOR_CONVERT(COLOR_RED));
+    ili9488_draw_filled_rectangle(145, 45, 359, 80);
+    ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
+    ili9488_draw_string(150, 50, "Bloqueio Ativado!");
+    delay_s(1);
+    draw_now = true;
+  }
 }
 
-void draw_lock(void){
-	if(locked){
-		botaoPadlock.image = &padlock;
-	}else{
-		botaoPadlock.image = &unlocked;
-	}
-	ili9488_draw_pixmap(botaoPadlock.x,
-	botaoPadlock.y,
-	botaoPadlock.image->width,
-	botaoPadlock.image->height,
-	botaoPadlock.image->data);
+void draw_lock(void) {
+  if (locked) {
+    botaoPadlock.image = &padlock;
+  } else {
+    botaoPadlock.image = &unlocked;
+  }
+  ili9488_draw_pixmap(botaoPadlock.x,
+                      botaoPadlock.y,
+                      botaoPadlock.image->width,
+                      botaoPadlock.image->height,
+                      botaoPadlock.image->data);
 }
-
-
 
 static void BOT0_callback(uint32_t id, uint32_t mask) {
   locked = true;
   lock_counter = 5;
 }
 static void BOT1_callback(uint32_t id, uint32_t mask) {
-  if(lock_counter < 0){
-	  lock_counter = 5; 
+  if (lock_counter < 0) {
+    lock_counter = 5;
   }
 }
 static void BOT2_callback(uint32_t id, uint32_t mask) {
   //pio_set(LED0.pio, LED0.mask);
- // pio_set(LED1.pio, LED1.mask);
- // pio_set(LED2.pio, LED2.mask);
+  // pio_set(LED1.pio, LED1.mask);
+  // pio_set(LED2.pio, LED2.mask);
   //pio_set(LED3.pio, LED3.mask);
 }
 static void BOT3_callback(uint32_t id, uint32_t mask) {
   //pio_clear(LED0.pio, LED0.mask);
- // pio_clear(LED1.pio, LED1.mask);
+  // pio_clear(LED1.pio, LED1.mask);
   //pio_clear(LED2.pio, LED2.mask);
   //pio_clear(LED3.pio, LED3.mask);
 }
@@ -330,17 +339,17 @@ void configure_pins(int state_pin) {
 }
 
 void font_draw_text(tFont *font, const char *text, int x, int y, int spacing) {
-	char *p = text;
-	while(*p != NULL) {
-		char letter = *p;
-		int letter_offset = letter - font->start_char;
-		if(letter <= font->end_char) {
-			tChar *current_char = font->chars + letter_offset;
-			ili9488_draw_pixmap(x, y, current_char->image->width, current_char->image->height, current_char->image->data);
-			x += current_char->image->width + spacing;
-		}
-		p++;
-	}
+  char *p = text;
+  while (*p != NULL) {
+    char letter = *p;
+    int letter_offset = letter - font->start_char;
+    if (letter <= font->end_char) {
+      tChar *current_char = font->chars + letter_offset;
+      ili9488_draw_pixmap(x, y, current_char->image->width, current_char->image->height, current_char->image->data);
+      x += current_char->image->width + spacing;
+    }
+    p++;
+  }
 }
 
 void draw_button(struct botao b[], uint N) {
@@ -408,88 +417,86 @@ void draw_menu(t_ciclo *c) {
 }
 
 void draw_custom_menu(t_ciclo *c) {
-	char buf[STRING_MENU_LENGTH];
+  char buf[STRING_MENU_LENGTH];
 
-	ili9488_draw_pixmap(10,
-	10,
-	(c->image)->width,
-	(c->image)->height,
-	(c->image)->data);
+  ili9488_draw_pixmap(10,
+                      10,
+                      (c->image)->width,
+                      (c->image)->height,
+                      (c->image)->data);
 
-	ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
-	ili9488_draw_filled_rectangle(10, 138, 138, 168);
-	ili9488_draw_filled_rectangle(145, 10, 480, 220);
-	ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
-	ili9488_draw_string(10,
-	145,
-	c->nome);
+  ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
+  ili9488_draw_filled_rectangle(10, 138, 138, 168);
+  ili9488_draw_filled_rectangle(145, 10, 480, 220);
+  ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
+  ili9488_draw_string(10,
+                      145,
+                      c->nome);
 
-	sprintf(buf, "Temperatura %d C", (c->temp));
-	ili9488_draw_string(155,
-	10,
-	buf);
-	sprintf(buf, "Smart Bubbles %s", c->bubblesOn ? "On" : "Off");
-	ili9488_draw_string(155,
-	40,
-	buf);
-	
-	sprintf(buf, "Tempo centr. %d min", c->centrifugacaoTempo);
-	ili9488_draw_string(155,
-	70,
-	buf);
-	sprintf(buf, "Qnt enx. %d", c->enxagueQnt);
-	ili9488_draw_string(155,
-	100,
-	buf);
+  sprintf(buf, "Temperatura %d C", (c->temp));
+  ili9488_draw_string(155,
+                      10,
+                      buf);
+  sprintf(buf, "Smart Bubbles %s", c->bubblesOn ? "On" : "Off");
+  ili9488_draw_string(155,
+                      40,
+                      buf);
 
-	sprintf(buf, "Tempo enx. %d min", c->enxagueTempo);
-	ili9488_draw_string(155,
-	135,
-	buf);
+  sprintf(buf, "Tempo centr. %d min", c->centrifugacaoTempo);
+  ili9488_draw_string(155,
+                      70,
+                      buf);
+  sprintf(buf, "Qnt enx. %d", c->enxagueQnt);
+  ili9488_draw_string(155,
+                      100,
+                      buf);
 
-	sprintf(buf, "Centr RMP %d", c->centrifugacaoRPM);
-	ili9488_draw_string(155,
-	160,
-	buf);
-	sprintf(buf, "Tempo total %d min", (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo));
-	ili9488_draw_string(155,
-	185,
-	buf);
+  sprintf(buf, "Tempo enx. %d min", c->enxagueTempo);
+  ili9488_draw_string(155,
+                      135,
+                      buf);
+
+  sprintf(buf, "Centr RMP %d", c->centrifugacaoRPM);
+  ili9488_draw_string(155,
+                      160,
+                      buf);
+  sprintf(buf, "Tempo total %d min", (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo));
+  ili9488_draw_string(155,
+                      185,
+                      buf);
 }
 
-void draw_dashboard(int draw_from_scratch ,t_ciclo *c){
-	char buf[STRING_MENU_LENGTH];
-	Horario c_duration;
-	Horario eta;
-	time_reset(&c_duration);
-	//time_reset(&eta);
-	c_duration.minuto = (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo);
-	//Cycle name
-	if(draw_from_scratch){
-		ili9488_draw_rectangle(120,10,360,100);
-		ili9488_draw_string(130, 15, c->nome);
-	}
-		calcTimeDiff(c_time,c_duration,&eta);
-		timeToString(buf,eta);
-		ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
-		ili9488_draw_filled_rectangle(140,45,358,80);
-		ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
-		font_draw_text(&sans36,buf, 160, 45, 2);
-		if(eta.hora == 0 && eta.minuto == 0 && eta.segundo == 0){
-			state = FINISH_STATE;
-			draw_now = true;
-		}
-	
+void draw_dashboard(int draw_from_scratch, t_ciclo *c) {
+  char buf[STRING_MENU_LENGTH];
+  Horario c_duration;
+  Horario eta;
+  time_reset(&c_duration);
+  //time_reset(&eta);
+  c_duration.minuto = (c->enxagueTempo * c->enxagueQnt) + (c->centrifugacaoTempo);
+  //Cycle name
+  if (draw_from_scratch) {
+    ili9488_draw_rectangle(120, 10, 360, 100);
+    ili9488_draw_string(130, 15, c->nome);
+  }
+  calcTimeDiff(c_time, c_duration, &eta);
+  timeToString(buf, eta);
+  ili9488_set_foreground_color(COLOR_CONVERT(COLOR_WHITE));
+  ili9488_draw_filled_rectangle(140, 45, 358, 80);
+  ili9488_set_foreground_color(COLOR_CONVERT(COLOR_BLACK));
+  font_draw_text(&sans36, buf, 160, 45, 2);
+  if (eta.hora == 0 && eta.minuto == 0 && eta.segundo == 0) {
+    state = FINISH_STATE;
+    draw_now = true;
+  }
 }
 
-void draw_finish_metrics()
-{	char buf[STRING_MENU_LENGTH];
-	ili9488_draw_rectangle(120,10,360,100);
-	ili9488_draw_string(130, 15, actual_cycle->nome);
-	sprintf(buf,"00:00:00");
-	font_draw_text(&sans36,buf, 160, 45, 2);
-	ili9488_draw_string(150, 150, "CICLO COMPLETO!");
-	
+void draw_finish_metrics() {
+  char buf[STRING_MENU_LENGTH];
+  ili9488_draw_rectangle(120, 10, 360, 100);
+  ili9488_draw_string(130, 15, actual_cycle->nome);
+  sprintf(buf, "00:00:00");
+  font_draw_text(&sans36, buf, 160, 45, 2);
+  ili9488_draw_string(150, 150, "CICLO COMPLETO!");
 }
 
 void draw(struct botao botoes[], int N) {
@@ -505,7 +512,7 @@ void draw(struct botao botoes[], int N) {
         prev_state = state;
       }
       draw_menu(actual_cycle);
-	  
+
       draw_now = false;
       break;
 
@@ -514,48 +521,47 @@ void draw(struct botao botoes[], int N) {
         draw_screen();
         time_reset(&c_time);
         draw_button(botoes, N);
-		draw_dashboard((state != prev_state), actual_cycle);
-		prev_state = state;
+        draw_dashboard((state != prev_state), actual_cycle);
+        prev_state = state;
       }
-	  draw_now = false;
-	  if(!paused){
-		  incTime(&c_time);
-		  draw_dashboard((state != prev_state), actual_cycle);
-		 
-	  }
-	  if(paused != p_paused){
-		   if(paused){
-			   botoes[1].image = &play;
-		   }else{
-			   botoes[1].image = &pause;
-		   }
-		   draw_button(botoes, N);
-		   p_paused = paused;
-	  }
-	  
-      
+      draw_now = false;
+      if (!paused) {
+        incTime(&c_time);
+        draw_dashboard((state != prev_state), actual_cycle);
+      }
+      if (paused != p_paused) {
+        if (paused) {
+          botoes[1].image = &play;
+        } else {
+          botoes[1].image = &pause;
+        }
+        draw_button(botoes, N);
+        p_paused = paused;
+      }
+
       break;
-	  
-	case FINISH_STATE:
-	  if (state != prev_state) {
-		  draw_screen();
-		  draw_button(botoes, N);
-		  if(locked) draw_lock();
-		  prev_state = state;
-		  draw_finish_metrics();
-	  }
-	  draw_now = false;
-	  
-	  break;
-	case CUSTOM_STATE:
-		if (state != prev_state) {
-			draw_screen();
-			prev_state = state;
-		}
-		draw_custom_menu(actual_cycle);
-		draw_button(botoes, N);
-		draw_now = false;
-	  break;
+
+    case FINISH_STATE:
+      if (state != prev_state) {
+        draw_screen();
+        draw_button(botoes, N);
+        if (locked)
+          draw_lock();
+        prev_state = state;
+        draw_finish_metrics();
+      }
+      draw_now = false;
+
+      break;
+    case CUSTOM_STATE:
+      if (state != prev_state) {
+        draw_screen();
+        prev_state = state;
+      }
+      draw_custom_menu(actual_cycle);
+      draw_button(botoes, N);
+      draw_now = false;
+      break;
     default:
       break;
     }
@@ -662,33 +668,32 @@ static void mxt_init(struct mxt_device *device) {
 }
 
 static void RTT_init(uint16_t pllPreScale, uint32_t IrqNPulses) {
-	uint32_t ul_previous_time;
+  uint32_t ul_previous_time;
 
-	/* Configure RTT for a 1 second tick interrupt */
-	rtt_sel_source(RTT, false);
-	rtt_init(RTT, pllPreScale);
+  /* Configure RTT for a 1 second tick interrupt */
+  rtt_sel_source(RTT, false);
+  rtt_init(RTT, pllPreScale);
 
-	ul_previous_time = rtt_read_timer_value(RTT);
-	while (ul_previous_time == rtt_read_timer_value(RTT));
+  ul_previous_time = rtt_read_timer_value(RTT);
+  while (ul_previous_time == rtt_read_timer_value(RTT))
+    ;
 
-	rtt_write_alarm_time(RTT, IrqNPulses + ul_previous_time);
+  rtt_write_alarm_time(RTT, IrqNPulses + ul_previous_time);
 
-	/* Enable RTT interrupt */
-	NVIC_DisableIRQ(RTT_IRQn);
-	NVIC_ClearPendingIRQ(RTT_IRQn);
-	NVIC_SetPriority(RTT_IRQn, 3);
-	NVIC_EnableIRQ(RTT_IRQn);
-	rtt_enable_interrupt(RTT, RTT_MR_ALMIEN);
+  /* Enable RTT interrupt */
+  NVIC_DisableIRQ(RTT_IRQn);
+  NVIC_ClearPendingIRQ(RTT_IRQn);
+  NVIC_SetPriority(RTT_IRQn, 3);
+  NVIC_EnableIRQ(RTT_IRQn);
+  rtt_enable_interrupt(RTT, RTT_MR_ALMIEN);
 }
 
-
 static void rtt_reconfigure() {
-	uint16_t pllPreScale = (int)(((float)32768) / 100.0);
-	uint32_t irqRTTvalue = 100;
+  uint16_t pllPreScale = (int)(((float)32768) / 100.0);
+  uint32_t irqRTTvalue = 100;
 
-	// reinicia RTT para gerar um novo IRQ
-	RTT_init(pllPreScale, irqRTTvalue);
-
+  // reinicia RTT para gerar um novo IRQ
+  RTT_init(pllPreScale, irqRTTvalue);
 }
 
 void draw_screen(void) {
@@ -739,7 +744,7 @@ void mxt_handler(struct mxt_device *device, struct botao botoes[], uint Nbotoes)
     struct botao bAtual;
     //contribuicao de status
     if (processa_touch(botoes, &bAtual, Nbotoes, conv_x, conv_y) && touch_event.status < 60) {
-		bAtual.p_handler();
+      bAtual.p_handler();
     }
     //update_screen(conv_x, conv_y);
     /* -----------------------------------------------------*/
@@ -790,11 +795,11 @@ int main(void) {
           NULL,
           NULL,
           NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
       },
       {
           botaoCancel,
@@ -807,51 +812,49 @@ int main(void) {
           NULL,
           NULL,
           NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
       },
-	  {
-		  botaoWashComplete,
-		  botaoBackHome,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
-		  NULL,
+      {
+          botaoWashComplete,
+          botaoBackHome,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
       },
-	  {
-		  botaoLeft,
-		  botaoPlay,
-		  botaoRight,
-		  botaoPlusTemperature,
-		  botaoMinusTemperature,
-		  botaoPlusBubbles,
-		  botaoMinusBubbles,
-		  botaoPlusCentr,
-		  botaoMinusCentr,
-		  botaoPlusEnx,
-		  botaoMinusEnx,
-		  botaoPlusTempoEnx,
-		  botaoMinusTempoEnx,
-		  botaoPlusRPM,
-		  botaoMinusRPM,
-		  
-	  }
-  };
-  //Numero de botoes em cada estado 
+      {
+          botaoLeft,
+          botaoPlay,
+          botaoRight,
+          botaoPlusTemperature,
+          botaoMinusTemperature,
+          botaoPlusBubbles,
+          botaoMinusBubbles,
+          botaoPlusCentr,
+          botaoMinusCentr,
+          botaoPlusEnx,
+          botaoMinusEnx,
+          botaoPlusTempoEnx,
+          botaoMinusTempoEnx,
+          botaoPlusRPM,
+          botaoMinusRPM,
+
+      }};
+  //Numero de botoes em cada estado
   int botoes_num[] = {3, 2, 2, 15};
-	
 
   /* Initialize the mXT touch device */
   mxt_init(&device);
@@ -874,38 +877,38 @@ int main(void) {
   lock_counter = -1;
   locked = 0;
   while (true) {
-    if(update){
-		rtt_reconfigure();
-		update = 0;
-		if(pio_get(LED0.pio,PIO_INPUT,LED0.mask)){
-			pio_clear(LED0.pio,LED0.mask);
-		}else{
-			pio_set(LED0.pio,LED0.mask);
-		}
-		if(locked){
-			pio_clear(LED3.pio,LED3.mask);
-			if(!pio_get(BUT3_PIO,PIO_INPUT,BUT3_MASK)){	
-				if(lock_counter > 0){
-					lock_counter--;
-				}else{
-					locked = false;
-				}
-			}
-		}else{
-			pio_set(LED3.pio,LED3.mask);
-		}
-		if(p_locked != locked){
-			draw_lock();
-			p_locked = locked;
-		}
-		if(state == RUN_STATE){
-			draw_now = true;
-		}
-	}
-	draw(botoes[state], botoes_num[state]);
+    if (update) {
+      rtt_reconfigure();
+      update = 0;
+      if (pio_get(LED0.pio, PIO_INPUT, LED0.mask)) {
+        pio_clear(LED0.pio, LED0.mask);
+      } else {
+        pio_set(LED0.pio, LED0.mask);
+      }
+      if (locked) {
+        pio_clear(LED3.pio, LED3.mask);
+        if (!pio_get(BUT3_PIO, PIO_INPUT, BUT3_MASK)) {
+          if (lock_counter > 0) {
+            lock_counter--;
+          } else {
+            locked = false;
+          }
+        }
+      } else {
+        pio_set(LED3.pio, LED3.mask);
+      }
+      if (p_locked != locked) {
+        draw_lock();
+        p_locked = locked;
+      }
+      if (state == RUN_STATE) {
+        draw_now = true;
+      }
+    }
+    draw(botoes[state], botoes_num[state]);
     /* Check for any pending messages and run message handler if any
 		 * message is found in the queue */
-	
+
     if (mxt_is_message_pending(&device)) {
       mxt_handler(&device, botoes[state], botoes_num[state]);
     }
