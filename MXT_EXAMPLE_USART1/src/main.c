@@ -29,7 +29,6 @@ volatile int paused = 0;
 volatile int p_paused = 0;
 volatile int lock_counter = -1;
 volatile int locked = 0;
-volatile int p_locked = 1;
 volatile int update = 1;
 
 #define  TEST
@@ -840,6 +839,7 @@ int main(void) {
   //Numero de botoes em cada estado 
   int botoes_num[] = {3, 2, 2, 15};
 	
+  int p_locked = 1;
 
   /* Initialize the mXT touch device */
   mxt_init(&device);
