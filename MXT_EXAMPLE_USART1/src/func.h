@@ -61,7 +61,7 @@ struct botao {
 #include "icones/plus.h"
 #include "icones/minus.h"
 
-static struct botao botaoRight = {
+struct botao botaoRight = {
     .x = 415,
     .y = 240,
     .size_x = 64,
@@ -69,7 +69,7 @@ static struct botao botaoRight = {
     .image = &right,
     .p_handler = next_callback};
 
-static struct botao botaoLeft = {
+struct botao botaoLeft = {
     .x = 0,
     .y = 240,
     .size_x = 64,
@@ -77,7 +77,7 @@ static struct botao botaoLeft = {
     .image = &left,
     .p_handler = back_callback};
 
-static struct botao botaoPlay = {
+struct botao botaoPlay = {
     .x = 210,
     .y = 230,
     .size_x = 64,
@@ -85,7 +85,7 @@ static struct botao botaoPlay = {
     .image = &play,
     .p_handler = play_callback};
 	
-static struct botao botaoCancel = {
+struct botao botaoCancel = {
 	.x = 176,
 	.y = 191,
 	.size_x = 128,
@@ -109,7 +109,7 @@ struct botao botaoPadlock = {
 	.image = &padlock,
 .p_handler = padlock_callback};
 
-static struct botao botaoWashComplete = {
+struct botao botaoWashComplete = {
 	.x = 180,
 	.y = 181,
 	.size_x = 118,
@@ -117,7 +117,7 @@ static struct botao botaoWashComplete = {
 	.image = &washComplete,
 .p_handler = cancel_callback};
 
-static struct botao botaoBackHome = {
+struct botao botaoBackHome = {
 	.x = 10,
 	.y = 10,
 	.size_x = 64,
@@ -127,7 +127,7 @@ static struct botao botaoBackHome = {
 
 
 
-static struct botao botaoPlusTemperature = {
+struct botao botaoPlusTemperature = {
 	.x = 446,
 	.y = 10,
 	.size_x = 24,
@@ -135,7 +135,7 @@ static struct botao botaoPlusTemperature = {
 	.image = &plus,
 .p_handler = temperature_plus_callback};
 
-static struct botao botaoMinusTemperature = {
+struct botao botaoMinusTemperature = {
 	.x = 417,
 	.y = 10,
 	.size_x = 24,
@@ -143,7 +143,7 @@ static struct botao botaoMinusTemperature = {
 	.image = &minus,
 .p_handler = temperature_minus_callback};
 
-static struct botao botaoPlusBubbles = {
+struct botao botaoPlusBubbles = {
 	.x = 446,
 	.y = 40,
 	.size_x = 24,
@@ -151,7 +151,7 @@ static struct botao botaoPlusBubbles = {
 	.image = &plus,
 .p_handler = bubbles_plus_callback};
 
-static struct botao botaoMinusBubbles = {
+struct botao botaoMinusBubbles = {
 	.x = 417,
 	.y = 40,
 	.size_x = 24,
@@ -159,7 +159,7 @@ static struct botao botaoMinusBubbles = {
 	.image = &minus,
 .p_handler = bubbles_minus_callback};
 
-static struct botao botaoPlusCentr = {
+struct botao botaoPlusCentr = {
 	.x = 446,
 	.y = 70,
 	.size_x = 24,
@@ -167,7 +167,7 @@ static struct botao botaoPlusCentr = {
 	.image = &plus,
 .p_handler = centr_plus_callback};
 
-static struct botao botaoMinusCentr = {
+struct botao botaoMinusCentr = {
 	.x = 417,
 	.y = 70,
 	.size_x = 24,
@@ -175,7 +175,7 @@ static struct botao botaoMinusCentr = {
 	.image = &minus,
 .p_handler = centr_minus_callback};
 
-static struct botao botaoPlusEnx = {
+struct botao botaoPlusEnx = {
 	.x = 446,
 	.y = 100,
 	.size_x = 24,
@@ -183,7 +183,7 @@ static struct botao botaoPlusEnx = {
 	.image = &plus,
 .p_handler = enx_plus_callback};
 
-static struct botao botaoMinusEnx = {
+struct botao botaoMinusEnx = {
 	.x = 417,
 	.y = 100,
 	.size_x = 24,
@@ -191,7 +191,7 @@ static struct botao botaoMinusEnx = {
 	.image = &minus,
 .p_handler = enx_minus_callback};
 
-static struct botao botaoPlusTempoEnx = {
+struct botao botaoPlusTempoEnx = {
 	.x = 446,
 	.y = 130,
 	.size_x = 24,
@@ -199,7 +199,7 @@ static struct botao botaoPlusTempoEnx = {
 	.image = &plus,
 .p_handler = tempo_enx_plus_callback};
 
-static struct botao botaoMinusTempoEnx = {
+struct botao botaoMinusTempoEnx = {
 	.x = 417,
 	.y = 130,
 	.size_x = 24,
@@ -207,7 +207,7 @@ static struct botao botaoMinusTempoEnx = {
 	.image = &minus,
 .p_handler = tempo_enx_minus_callback};
 
-static struct botao botaoPlusRPM = {
+struct botao botaoPlusRPM = {
 	.x = 446,
 	.y = 160,
 	.size_x = 24,
@@ -215,7 +215,7 @@ static struct botao botaoPlusRPM = {
 	.image = &plus,
 .p_handler = rpm_plus_callback};
 
-static struct botao botaoMinusRPM = {
+struct botao botaoMinusRPM = {
 	.x = 417,
 	.y = 160,
 	.size_x = 24,
