@@ -279,18 +279,6 @@ static void BOT1_callback(uint32_t id, uint32_t mask) {
 	  lock_counter = 5; 
   }
 }
-static void BOT2_callback(uint32_t id, uint32_t mask) {
-  //pio_set(LED0.pio, LED0.mask);
- // pio_set(LED1.pio, LED1.mask);
- // pio_set(LED2.pio, LED2.mask);
-  //pio_set(LED3.pio, LED3.mask);
-}
-static void BOT3_callback(uint32_t id, uint32_t mask) {
-  //pio_clear(LED0.pio, LED0.mask);
- // pio_clear(LED1.pio, LED1.mask);
-  //pio_clear(LED2.pio, LED2.mask);
-  //pio_clear(LED3.pio, LED3.mask);
-}
 
 void configure_pins(int state_pin) {
   pmc_enable_periph_clk(ID_PIOA);
